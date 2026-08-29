@@ -12,6 +12,7 @@ import { connectDB } from '../src/lib/mongodb'
 import { User } from '../src/models/User'
 import { Product } from '../src/models/Product'
 import { Build } from '../src/models/Build'
+import { Promo } from '../src/models/Promo'
 import { slugify } from '../src/lib/utils'
 import { ASSEMBLY_SKU, ASSEMBLY_FEE } from '../src/lib/constants'
 
@@ -305,8 +306,44 @@ async function main() {
     )
   }
 
+  // --- Codes promo de démo ---
+  const promos = [
+    {
+      code: 'BIENVENUE10',
+      type: 'percentage',
+      value: 10,
+      description: 'Première commande',
+      maxUses: 0,
+      minPurchase: 150,
+      applicableCategories: [],
+    },
+    {
+      code: 'SETUP50',
+      type: 'fixed',
+      value: 50,
+      description: 'Remise périphériques',
+      maxUses: 200,
+      minPurchase: 300,
+      applicableCategories: ['peripheriques'],
+    },
+  ]
+  for (const p of promos) {
+    await Promo.updateOne(
+      { code: p.code },
+      {
+        $set: {
+          ...p,
+          validFrom: new Date('2026-01-01'),
+          validUntil: new Date('2026-12-31'),
+          active: true,
+        },
+      },
+      { upsert: true },
+    )
+  }
+
   console.log(
-    `✓ ${components.length} composants + ${catalogExtras.length} produits + 1 service + ${builds.length} PC configurés`,
+    `✓ ${components.length} composants + ${catalogExtras.length} produits + 1 service + ${builds.length} PC configurés + ${promos.length} codes promo`,
   )
   process.exit(0)
 }

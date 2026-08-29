@@ -7,6 +7,33 @@ export const registerSchema = z.object({
   lastName: z.string().min(1, 'Nom requis'),
 })
 
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1, 'Mot de passe actuel requis'),
+  newPassword: z.string().min(8, 'Au moins 8 caractères'),
+})
+
+export const promoCreateSchema = z.object({
+  code: z.string().min(3).max(30).transform((s) => s.toUpperCase().trim()),
+  type: z.enum(['percentage', 'fixed']),
+  value: z.number().positive(),
+  description: z.string().optional().default(''),
+  maxUses: z.number().int().min(0).optional().default(0),
+  validFrom: z.string().or(z.date()),
+  validUntil: z.string().or(z.date()),
+  minPurchase: z.number().min(0).optional().default(0),
+  applicableCategories: z.array(z.string()).optional().default([]),
+  active: z.boolean().optional().default(true),
+})
+
+export const promoUpdateSchema = z.object({
+  description: z.string().optional(),
+  value: z.number().positive().optional(),
+  maxUses: z.number().int().min(0).optional(),
+  validUntil: z.string().or(z.date()).optional(),
+  minPurchase: z.number().min(0).optional(),
+  active: z.boolean().optional(),
+})
+
 export const loginSchema = z.object({
   email: z.string().email('Email invalide'),
   password: z.string().min(1, 'Mot de passe requis'),

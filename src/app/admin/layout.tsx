@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/store/auth'
 import { cn } from '@/lib/utils'
+import { PageTransition } from '@/components/layout/PageTransition'
 
 const links = [
   { href: '/admin/dashboard', label: 'Tableau de bord' },
@@ -86,7 +87,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {user ? `Connecté : ${user.firstName} (${user.email})` : ''}
           </span>
         </header>
-        <main className="flex-1 p-4 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 lg:p-8">
+          <PageTransition>{children}</PageTransition>
+        </main>
       </div>
 
       {open && (

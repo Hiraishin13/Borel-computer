@@ -5,6 +5,9 @@ import Image from 'next/image'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { formatPrice, cn } from '@/lib/utils'
+import { usePagination } from '@/hooks/usePagination'
+import { Pagination } from '@/components/ui/Pagination'
+import { Loader } from '@/components/ui/Loader'
 
 interface AdminProduct {
   id: string
@@ -58,6 +61,7 @@ export default function AdminProductsPage() {
 
   const rows = data ?? []
   const publishedCount = rows.filter((r) => r.published).length
+  const { page, setPage, pageCount, pageItems } = usePagination(rows, 15, filter)
 
   return (
     <div>
@@ -113,12 +117,12 @@ export default function AdminProductsPage() {
           <tbody className="divide-y divide-white/10">
             {isLoading ? (
               <tr>
-                <td colSpan={8} className="py-6 text-center text-muted">
-                  Chargement…
+                <td colSpan={8} className="py-10">
+                  <Loader />
                 </td>
               </tr>
             ) : (
-              rows.map((p) => (
+              pageItems.map((p) => (
                 <ProductRow
                   key={p.id}
                   product={p}
@@ -130,6 +134,7 @@ export default function AdminProductsPage() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} onChange={setPage} className="mt-6" />
     </div>
   )
 }

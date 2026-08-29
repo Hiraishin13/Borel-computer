@@ -1,23 +1,36 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { useProducts } from '@/hooks/useProducts'
 import { ProductGrid } from '@/components/product/ProductGrid'
 import { ProductFilters } from '@/components/product/ProductFilters'
+import { Pagination } from '@/components/ui/Pagination'
 import type { ProductListQuery } from '@/types'
 
 function Catalogue() {
   const params = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const page = params.get('page') ? Number(params.get('page')) : 1
   const query: ProductListQuery = {
     category: params.get('category') ?? undefined,
     search: params.get('search') ?? undefined,
     sortBy: (params.get('sortBy') as ProductListQuery['sortBy']) ?? undefined,
     order: (params.get('order') as ProductListQuery['order']) ?? undefined,
-    page: params.get('page') ? Number(params.get('page')) : 1,
+    page,
     limit: 24,
   }
   const { data, isLoading } = useProducts(query)
+
+  function goTo(p: number) {
+    const next = new URLSearchParams(params.toString())
+    if (p <= 1) next.delete('page')
+    else next.set('page', String(p))
+    router.push(`${pathname}?${next.toString()}`)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <div className="container-page py-12">
@@ -28,7 +41,15 @@ function Catalogue() {
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[220px_1fr]">
         <ProductFilters />
-        <ProductGrid products={data?.data} loading={isLoading} />
+        <div>
+          <ProductGrid products={data?.data} loading={isLoading} />
+          <Pagination
+            page={data?.pagination.page ?? 1}
+            pageCount={data?.pagination.totalPages ?? 1}
+            onChange={goTo}
+            className="mt-10"
+          />
+        </div>
       </div>
     </div>
   )

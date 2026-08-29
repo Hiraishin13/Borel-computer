@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { formatPrice, formatDate } from '@/lib/utils'
+import { usePagination } from '@/hooks/usePagination'
+import { Pagination } from '@/components/ui/Pagination'
+import { Loader } from '@/components/ui/Loader'
 
 interface Row {
   id: string
@@ -33,6 +36,7 @@ export default function AdminCustomersPage() {
   })
 
   const rows = data ?? []
+  const { page, setPage, pageCount, pageItems } = usePagination(rows, 20, search)
 
   return (
     <div>
@@ -64,12 +68,12 @@ export default function AdminCustomersPage() {
           <tbody className="divide-y divide-white/10">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="py-6 text-center text-muted">
-                  Chargement…
+                <td colSpan={6} className="py-10">
+                  <Loader />
                 </td>
               </tr>
             ) : (
-              rows.map((c) => (
+              pageItems.map((c) => (
                 <tr key={c.id} className="hover:bg-white/5">
                   <td className="py-2">
                     <Link href={`/admin/customers/${c.id}`} className="font-medium hover:text-accent">
@@ -93,6 +97,7 @@ export default function AdminCustomersPage() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} onChange={setPage} className="mt-6" />
     </div>
   )
 }

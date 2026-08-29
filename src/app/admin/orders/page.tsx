@@ -6,6 +6,8 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { formatDate, formatPrice, cn } from '@/lib/utils'
 import { ORDER_STATUS_LABELS } from '@/lib/constants'
+import { Pagination } from '@/components/ui/Pagination'
+import { Loader } from '@/components/ui/Loader'
 import type { PaginatedResponse, Order } from '@/types'
 
 const FILTERS = ['', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const
@@ -13,12 +15,13 @@ const FILTERS = ['', 'pending', 'processing', 'shipped', 'delivered', 'cancelled
 export default function AdminOrdersPage() {
   const router = useRouter()
   const [status, setStatus] = useState<string>('')
+  const [page, setPage] = useState(1)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'orders', status],
+    queryKey: ['admin', 'orders', status, page],
     queryFn: async () => {
       const { data } = await apiClient.get<PaginatedResponse<Order>>('/admin/orders', {
-        params: status ? { status } : {},
+        params: { ...(status ? { status } : {}), page, limit: 20 },
       })
       return data
     },
@@ -32,7 +35,10 @@ export default function AdminOrdersPage() {
         {FILTERS.map((f) => (
           <button
             key={f || 'all'}
-            onClick={() => setStatus(f)}
+            onClick={() => {
+              setStatus(f)
+              setPage(1)
+            }}
             className={cn(
               'rounded-full border px-3 py-1',
               status === f ? 'border-accent bg-accent text-light' : 'border-white/15 text-muted',
@@ -58,8 +64,8 @@ export default function AdminOrdersPage() {
           <tbody className="divide-y divide-white/10">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="py-6 text-center text-muted">
-                  Chargement…
+                <td colSpan={6} className="py-10">
+                  <Loader />
                 </td>
               </tr>
             ) : (
@@ -91,6 +97,12 @@ export default function AdminOrdersPage() {
           </tbody>
         </table>
       </div>
+      <Pagination
+        page={data?.pagination.page ?? 1}
+        pageCount={data?.pagination.totalPages ?? 1}
+        onChange={setPage}
+        className="mt-6"
+      />
     </div>
   )
 }
