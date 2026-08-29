@@ -44,6 +44,7 @@ const orderSchema = new Schema(
       status: String,
       estimatedDelivery: String,
     },
+    invoiceSentAt: { type: Date },
     notes: { type: String },
   },
   { timestamps: true },

@@ -8,12 +8,18 @@ function client() {
   return resend
 }
 
-export async function sendEmail(opts: { to: string; subject: string; html: string }) {
+export async function sendEmail(opts: {
+  to: string
+  subject: string
+  html: string
+  attachments?: { filename: string; content: string }[]
+}) {
   return client().emails.send({
     from: env.emailFrom,
     to: opts.to,
     subject: opts.subject,
     html: opts.html,
+    attachments: opts.attachments,
   })
 }
 

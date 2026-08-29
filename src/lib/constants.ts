@@ -19,6 +19,21 @@ export const EXPRESS_SHIPPING_SURCHARGE = 15
 export const ASSEMBLY_SKU = 'SVC-ASSEMBLAGE'
 export const ASSEMBLY_FEE = 99
 
+// Usages des PC pré-configurés
+export const PC_USAGES = [
+  { slug: 'gaming', label: 'Gaming' },
+  { slug: 'semi-gaming', label: 'Semi-Gaming' },
+  { slug: 'multimedia', label: 'Multimédia' },
+  { slug: 'creation', label: 'Création / Studio' },
+  { slug: 'bureautique', label: 'Bureautique' },
+] as const
+
+export type PcUsage = (typeof PC_USAGES)[number]['slug']
+
+export function usageLabel(slug: string): string {
+  return PC_USAGES.find((u) => u.slug === slug)?.label ?? slug
+}
+
 export const CATEGORIES = [
   {
     slug: 'ordinateurs',
@@ -42,9 +57,9 @@ export const CATEGORIES = [
 export const NAV_LINKS = [
   { href: '/', label: 'Accueil' },
   { href: '/products', label: 'Catalogue' },
+  { href: '/configurations', label: 'Nos PC' },
   { href: '/configurator', label: 'Configurateur' },
   { href: '/blog', label: 'Blog' },
-  { href: '/about', label: 'À propos' },
 ] as const
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {

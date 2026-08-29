@@ -1,11 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { useCartStore } from '@/store/cart'
 import { ASSEMBLY_FEE } from '@/lib/constants'
+import type { Build } from '@/types'
 import {
   CONFIG_SLOTS,
   checkCompatibility,
@@ -20,11 +21,13 @@ import type { Product } from '@/types'
 import { SlotPicker } from '@/components/configurator/SlotPicker'
 import { ConfigSummary, type SummaryLine } from '@/components/configurator/ConfigSummary'
 
-export default function ConfiguratorPage() {
+function ConfiguratorInner() {
   const router = useRouter()
+  const buildId = useSearchParams().get('build')
   const addItem = useCartStore((s) => s.addItem)
   const [selection, setSelection] = useState<Selection>({})
   const [busy, setBusy] = useState(false)
+  const preloaded = useRef(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['configurator'],
@@ -33,6 +36,23 @@ export default function ConfiguratorPage() {
       return data.catalog
     },
   })
+
+  const baseBuild = useQuery({
+    queryKey: ['build', buildId],
+    queryFn: async () => (await apiClient.get<Build>(`/builds/${buildId}`)).data,
+    enabled: Boolean(buildId),
+  })
+
+  // Pré-remplit la sélection à partir d'un modèle (?build=...)
+  useEffect(() => {
+    if (preloaded.current || !baseBuild.data) return
+    const next: Selection = {}
+    for (const part of baseBuild.data.parts) {
+      next[part.slot as SlotKey] = { productId: part.productId, color: part.color }
+    }
+    setSelection(next)
+    preloaded.current = true
+  }, [baseBuild.data])
 
   const assembly = useQuery({
     queryKey: ['product', 'assemblage-cablage-test'],
@@ -126,6 +146,12 @@ export default function ConfiguratorPage() {
         Composez votre configuration sur mesure : choisissez la marque, le modèle et la finition de
         chaque composant. La compatibilité et la consommation sont vérifiées en temps réel.
       </p>
+      {baseBuild.data && (
+        <p className="mt-3 inline-block rounded bg-white/5 px-3 py-1 text-sm text-muted">
+          Basé sur le modèle <span className="text-light">{baseBuild.data.name}</span> — modifiez ce
+          que vous voulez.
+        </p>
+      )}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-5">
@@ -165,5 +191,13 @@ export default function ConfiguratorPage() {
         />
       </div>
     </div>
+  )
+}
+
+export default function ConfiguratorPage() {
+  return (
+    <Suspense fallback={<div className="container-page py-12 text-muted">Chargement…</div>}>
+      <ConfiguratorInner />
+    </Suspense>
   )
 }

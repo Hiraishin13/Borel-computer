@@ -11,6 +11,7 @@ config({ path: '.env.local' })
 import { connectDB } from '../src/lib/mongodb'
 import { User } from '../src/models/User'
 import { Product } from '../src/models/Product'
+import { Build } from '../src/models/Build'
 import { slugify } from '../src/lib/utils'
 import { ASSEMBLY_SKU, ASSEMBLY_FEE } from '../src/lib/constants'
 
@@ -212,7 +213,101 @@ async function main() {
     await upsert(s, s.subcategory === 'Claviers' ? 'peripheriques' : 'ordinateurs')
   }
 
-  console.log(`✓ ${components.length} composants + ${catalogExtras.length} produits catalogue + 1 service`)
+  // --- PC pré-configurés (builds) ---
+  const bySku = new Map<string, string>()
+  for (const p of await Product.find({}, { sku: 1 }).lean()) bySku.set(p.sku, String(p._id))
+  const part = (slot: string, sku: string, color?: string) => ({
+    slot,
+    productId: bySku.get(sku),
+    ...(color ? { color } : {}),
+  })
+
+  const builds = [
+    {
+      name: 'Borel Arena — RTX 4070 Super',
+      usage: 'gaming',
+      description: 'Gaming 1440p haute fréquence, silencieux et évolutif.',
+      markupPct: 8,
+      published: true,
+      featured: true,
+      heroImage: IMG.GPU,
+      parts: [
+        part('CPU', 'CPU-R7-7800X3D'),
+        part('Carte mère', 'MB-MSI-B650P'),
+        part('GPU', 'GPU-RTX4070S'),
+        part('RAM', 'RAM-COR-32-6000', 'Noir'),
+        part('Stockage', 'SSD-SAM-990-2T'),
+        part('Refroidissement', 'COOL-ARC-LF3-360', 'Noir'),
+        part('Alimentation', 'PSU-COR-RM850X'),
+        part('Boîtier', 'CASE-COR-4000D', 'Noir'),
+      ],
+    },
+    {
+      name: 'Borel Titan — RTX 4080 Super',
+      usage: 'gaming',
+      description: 'Le haut du panier pour le jeu 4K et la création lourde.',
+      markupPct: 7,
+      published: true,
+      heroImage: IMG.GPU,
+      parts: [
+        part('CPU', 'CPU-I9-14900K'),
+        part('Carte mère', 'MB-ASUS-Z790A'),
+        part('GPU', 'GPU-RTX4080S'),
+        part('RAM', 'RAM-GSK-32-6400', 'Blanc'),
+        part('Stockage', 'SSD-CRU-T700-2T'),
+        part('Refroidissement', 'COOL-COR-H100I', 'Blanc'),
+        part('Alimentation', 'PSU-BQ-SP12-1000'),
+        part('Boîtier', 'CASE-LL-O11EVO', 'Blanc'),
+      ],
+    },
+    {
+      name: 'Borel Studio — Création',
+      usage: 'creation',
+      description: 'Montage vidéo, 3D et rendu : beaucoup de cœurs et de RAM.',
+      markupPct: 6,
+      published: true,
+      heroImage: IMG.CPU,
+      parts: [
+        part('CPU', 'CPU-R9-7900X'),
+        part('Carte mère', 'MB-ASUS-B650EF'),
+        part('GPU', 'GPU-RX7800XT'),
+        part('RAM', 'RAM-KIN-64-5600', 'Noir'),
+        part('Stockage', 'SSD-SAM-990-2T'),
+        part('Refroidissement', 'COOL-NOC-NHD15', 'Marron / Beige'),
+        part('Alimentation', 'PSU-COR-RM850X'),
+        part('Boîtier', 'CASE-FD-NORTH', 'Charbon / Chêne'),
+      ],
+    },
+    {
+      name: 'Borel Play — Semi-Gaming',
+      usage: 'semi-gaming',
+      description: 'Esport et jeux 1080p sans compromis, prix contenu.',
+      markupPct: 10,
+      published: true,
+      heroImage: IMG.GPU,
+      parts: [
+        part('CPU', 'CPU-R5-7600X'),
+        part('Carte mère', 'MB-MSI-B650P'),
+        part('GPU', 'GPU-RTX4060TI'),
+        part('RAM', 'RAM-COR-16-6000', 'Noir'),
+        part('Stockage', 'SSD-WD-SN850X-1T'),
+        part('Alimentation', 'PSU-COR-RM750E'),
+        part('Boîtier', 'CASE-NZXT-H5F', 'Noir'),
+      ],
+    },
+  ]
+
+  for (const b of builds) {
+    await Build.updateOne(
+      { slug: slugify(b.name) },
+      { $set: { ...b, slug: slugify(b.name) } },
+      { upsert: true },
+    )
+  }
+
+  console.log(
+    `✓ ${components.length} composants + ${catalogExtras.length} produits + 1 service + ${builds.length} PC configurés`,
+  )
   process.exit(0)
 }
 
