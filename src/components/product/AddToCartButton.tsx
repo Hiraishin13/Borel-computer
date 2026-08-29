@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import type { Product } from '@/types'
 import { useCartStore } from '@/store/cart'
+import { useBehaviorStore } from '@/store/behavior'
 import { cn } from '@/lib/utils'
 
 export function AddToCartButton({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem)
+  const recordCartAdd = useBehaviorStore((s) => s.recordCartAdd)
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   const price = product.discountPrice ?? product.price
@@ -42,6 +44,7 @@ export function AddToCartButton({ product }: { product: Product }) {
             },
             qty,
           )
+          recordCartAdd({ brand: product.brand, subcategory: product.subcategory })
           setAdded(true)
           setTimeout(() => setAdded(false), 2000)
         }}

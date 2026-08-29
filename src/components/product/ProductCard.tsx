@@ -9,9 +9,11 @@ import { fadeInUp } from '@/lib/animations'
 import { Badge } from '@/components/ui/Badge'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { useCartStore } from '@/store/cart'
+import { useBehaviorStore } from '@/store/behavior'
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const addItem = useCartStore((s) => s.addItem)
+  const recordCartAdd = useBehaviorStore((s) => s.recordCartAdd)
   const off = discountPercent(product.price, product.discountPrice)
   const price = product.discountPrice ?? product.price
 
@@ -70,7 +72,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         <button
           type="button"
           disabled={product.stock === 0}
-          onClick={() =>
+          onClick={() => {
             addItem({
               id: `${product.id}`,
               productId: product.id,
@@ -80,7 +82,8 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
               image: product.thumbnail,
               stock: product.stock,
             })
-          }
+            recordCartAdd({ brand: product.brand, subcategory: product.subcategory })
+          }}
           className="btn-primary mt-4 w-full"
         >
           Ajouter au panier

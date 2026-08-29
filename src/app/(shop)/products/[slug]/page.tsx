@@ -8,6 +8,9 @@ import { formatPrice, discountPercent } from '@/lib/utils'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { Badge } from '@/components/ui/Badge'
 import { AddToCartButton } from '@/components/product/AddToCartButton'
+import { ProductBehaviorTracker } from '@/components/product/ProductBehaviorTracker'
+import { Recommendations } from '@/components/product/Recommendations'
+import { RecentlyViewed } from '@/components/product/RecentlyViewed'
 
 export const revalidate = 120
 
@@ -44,6 +47,18 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
   return (
     <div className="container-page py-12">
+      <ProductBehaviorTracker
+        product={{
+          id: product.id,
+          slug: product.slug,
+          name: product.name,
+          category: product.category,
+          subcategory: product.subcategory,
+          brand: product.brand,
+          price,
+          image: product.thumbnail,
+        }}
+      />
       <div className="grid gap-12 lg:grid-cols-2">
         <div className="space-y-4">
           <div className="relative aspect-square overflow-hidden rounded-lg bg-secondary">
@@ -102,6 +117,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
           </dl>
         </div>
       </div>
+
+      <Recommendations productId={product.id} slug={product.slug} />
+      <RecentlyViewed excludeSlug={product.slug} />
     </div>
   )
 }
