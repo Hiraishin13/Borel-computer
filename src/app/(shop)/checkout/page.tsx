@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
 import { useAuthStore } from '@/store/auth'
@@ -17,8 +18,12 @@ export default function CheckoutPage() {
   const totals = useCartStore((s) => s.totals())
   const clear = useCartStore((s) => s.clear)
   const user = useAuthStore((s) => s.user)
+  const token = useAuthStore((s) => s.token)
+  const [mounted, setMounted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => setMounted(true), [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -78,6 +83,25 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return <div className="container-page py-20 text-center text-muted">Votre panier est vide.</div>
+  }
+
+  if (mounted && !token) {
+    return (
+      <div className="container-page flex min-h-[50vh] flex-col items-center justify-center text-center">
+        <h1 className="text-2xl font-bold">Connectez-vous pour commander</h1>
+        <p className="mt-2 max-w-sm text-muted">
+          La création d&apos;une commande nécessite un compte. Votre panier est conservé.
+        </p>
+        <div className="mt-8 flex gap-3">
+          <Link href="/login?redirect=%2Fcheckout" className="btn-primary">
+            Se connecter
+          </Link>
+          <Link href="/signup?redirect=%2Fcheckout" className="btn-secondary">
+            Créer un compte
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (

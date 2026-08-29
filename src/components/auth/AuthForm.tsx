@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { apiClient } from '@/lib/api-client'
 import { useAuthStore } from '@/store/auth'
@@ -9,11 +9,15 @@ import type { AuthResponse } from '@/types'
 
 export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const router = useRouter()
+  const params = useSearchParams()
   const setSession = useAuthStore((s) => s.setSession)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const isRegister = mode === 'register'
+  const expired = params.get('session') === 'expired'
+  const redirect = params.get('redirect')
+  const destination = redirect && redirect.startsWith('/') ? redirect : '/account/profile'
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -26,7 +30,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         payload,
       )
       setSession(data)
-      router.push('/account/profile')
+      router.push(destination)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue')
     } finally {
@@ -37,6 +41,12 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <h1 className="text-xl font-bold">{isRegister ? 'Créer un compte' : 'Connexion'}</h1>
+
+      {expired && !isRegister && (
+        <p className="rounded-md bg-warning/10 px-3 py-2 text-sm text-warning">
+          Votre session a expiré. Merci de vous reconnecter.
+        </p>
+      )}
 
       {isRegister && (
         <div className="grid grid-cols-2 gap-3">
