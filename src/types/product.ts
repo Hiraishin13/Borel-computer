@@ -24,6 +24,7 @@ export interface Product {
   discountPrice?: number
   currency: string
   stock: number
+  published: boolean
   thumbnail: string
   images: string[]
   rating: number

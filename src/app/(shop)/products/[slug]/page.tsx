@@ -14,7 +14,7 @@ export const revalidate = 120
 async function getProduct(slug: string) {
   try {
     await connectDB()
-    const doc = await ProductModel.findOne({ slug }).lean()
+    const doc = await ProductModel.findOne({ slug, published: { $ne: false } }).lean()
     return doc ? serializeProduct(doc) : null
   } catch {
     return null

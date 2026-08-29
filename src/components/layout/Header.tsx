@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { NAV_LINKS, SITE } from '@/lib/constants'
 import { useCartStore } from '@/store/cart'
+import { useAuthStore } from '@/store/auth'
 import { cn } from '@/lib/utils'
 import { MobileNav } from './MobileNav'
 
@@ -13,6 +14,7 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
   const count = useCartStore((s) => s.count())
+  const isAdmin = useAuthStore((s) => s.user?.role === 'admin')
 
   useEffect(() => setMounted(true), [])
   useEffect(() => {
@@ -54,6 +56,14 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
+          {mounted && isAdmin && (
+            <Link
+              href="/admin/dashboard"
+              className="hidden rounded border border-accent/40 px-2 py-1 text-xs text-accent hover:bg-accent/10 sm:block"
+            >
+              Admin
+            </Link>
+          )}
           <Link href="/account/wishlist" className="hidden text-muted hover:text-light sm:block" aria-label="Favoris">
             ♥
           </Link>

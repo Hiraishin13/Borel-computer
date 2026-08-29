@@ -22,6 +22,7 @@ export function serializeProduct(doc: any): Product {
     discountPrice: doc.discountPrice ?? undefined,
     currency: doc.currency ?? CURRENCY,
     stock: doc.stock ?? 0,
+    published: doc.published !== false,
     thumbnail: doc.thumbnail,
     images: doc.images ?? [],
     rating: doc.rating ?? 0,

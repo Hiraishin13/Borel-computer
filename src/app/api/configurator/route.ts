@@ -12,6 +12,7 @@ export const GET = handle(async () => {
     category: 'composants',
     subcategory: { $in: slotKeys },
     stock: { $gt: 0 },
+    published: { $ne: false },
   })
     .sort({ brand: 1, price: 1 })
     .lean()

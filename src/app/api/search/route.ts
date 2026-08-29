@@ -13,6 +13,8 @@ export const GET = handle(async (request: NextRequest) => {
   const started = Date.now()
 
   const filter: Record<string, unknown> = {
+    published: { $ne: false },
+    category: { $ne: 'services' },
     $or: [
       { name: { $regex: q, $options: 'i' } },
       { tags: { $regex: q, $options: 'i' } },

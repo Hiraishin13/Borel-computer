@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/mongodb'
 import { Product } from '@/models/Product'
 import { requireAdmin } from '@/lib/auth'
 import { serializeProduct } from '@/lib/serializers'
+import { productUpdateSchema } from '@/lib/validators'
 import { handle, ok, fail } from '@/lib/api-response'
 
 type Params = { params: { id: string } }
@@ -23,7 +24,7 @@ export const GET = handle(async (_request: NextRequest, { params }: Params) => {
 export const PATCH = handle(async (request: NextRequest, { params }: Params) => {
   requireAdmin(request)
   await connectDB()
-  const updates = await request.json()
+  const updates = productUpdateSchema.parse(await request.json())
   const doc = await Product.findOneAndUpdate(byIdOrSlug(params.id), updates, { new: true }).lean()
   if (!doc) return fail('NOT_FOUND', 'Produit non trouvé', 404)
   return ok(serializeProduct(doc))

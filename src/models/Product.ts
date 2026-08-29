@@ -19,8 +19,10 @@ const productSchema = new Schema(
     subcategory: { type: String, required: true, index: true },
     price: { type: Number, required: true, min: 0 },
     discountPrice: { type: Number, min: 0 },
+    cost: { type: Number, default: 0, min: 0 }, // prix d'achat, pour le calcul de marge
     currency: { type: String, default: 'USD' },
     stock: { type: Number, default: 0, min: 0 },
+    published: { type: Boolean, default: true, index: true },
     thumbnail: { type: String, required: true },
     images: { type: [String], default: [] },
     rating: { type: Number, default: 0, min: 0, max: 5 },

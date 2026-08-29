@@ -16,8 +16,11 @@ export const GET = handle(async (request: NextRequest) => {
   const sortBy = sp.get('sortBy') ?? 'createdAt'
   const order = sp.get('order') === 'asc' ? 1 : -1
 
-  // Les prestations de service ne sont pas listées dans le catalogue public.
-  const query: Record<string, unknown> = { category: { $ne: 'services' } }
+  // Catalogue public : articles publiés uniquement, hors prestations de service.
+  const query: Record<string, unknown> = {
+    category: { $ne: 'services' },
+    published: { $ne: false },
+  }
   if (sp.get('category')) query.category = sp.get('category')
   if (sp.get('subcategory')) query.subcategory = sp.get('subcategory')
   if (sp.get('featured')) query.featured = true

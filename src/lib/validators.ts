@@ -45,13 +45,28 @@ export const checkoutSchema = z.object({
 export const productSchema = z.object({
   sku: z.string().min(1),
   name: z.string().min(1),
+  brand: z.string().optional(),
   description: z.string().min(1),
   category: z.string().min(1),
   subcategory: z.string().min(1),
   price: z.number().positive(),
   discountPrice: z.number().positive().optional(),
+  cost: z.number().min(0).optional().default(0),
   stock: z.number().int().min(0),
   images: z.array(z.string().url()).min(1),
   specifications: z.record(z.string()).optional().default({}),
   featured: z.boolean().optional().default(false),
+  published: z.boolean().optional().default(true),
+})
+
+export const productUpdateSchema = z.object({
+  name: z.string().min(1).optional(),
+  brand: z.string().optional(),
+  description: z.string().min(1).optional(),
+  price: z.number().positive().optional(),
+  discountPrice: z.number().positive().nullable().optional(),
+  cost: z.number().min(0).optional(),
+  stock: z.number().int().min(0).optional(),
+  featured: z.boolean().optional(),
+  published: z.boolean().optional(),
 })
