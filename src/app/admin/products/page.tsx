@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { formatPrice, cn } from '@/lib/utils'
+import { ImageManager } from '@/components/admin/ImageManager'
 import { usePagination } from '@/hooks/usePagination'
 import { Pagination } from '@/components/ui/Pagination'
 import { Loader } from '@/components/ui/Loader'
@@ -160,7 +162,12 @@ function ProductRow({
             <Image src={p.thumbnail} alt="" fill className="object-cover" sizes="36px" />
           </div>
           <div className="min-w-0">
-            <p className="truncate font-medium">{p.name}</p>
+            <Link
+              href={`/admin/products/${p.id}`}
+              className="block truncate font-medium hover:text-accent"
+            >
+              {p.name}
+            </Link>
             <p className="truncate text-xs text-muted">{p.sku}</p>
           </div>
         </div>
@@ -217,10 +224,18 @@ function NewProductForm({
   pending: boolean
   error: string | null
 }) {
+  const [images, setImages] = useState<string[]>([])
+  const [localError, setLocalError] = useState<string | null>(null)
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault()
+        if (images.length === 0) {
+          setLocalError('Importez au moins une image.')
+          return
+        }
+        setLocalError(null)
         const f = new FormData(e.currentTarget)
         const n = (k: string) => Number(f.get(k))
         onSubmit({
@@ -233,12 +248,16 @@ function NewProductForm({
           price: n('price'),
           cost: n('cost') || 0,
           stock: n('stock') || 0,
-          images: [String(f.get('image'))],
+          images,
           published: f.get('published') === 'on',
         })
       }}
       className="card mt-4 grid gap-3 p-5 sm:grid-cols-2"
     >
+      <div className="sm:col-span-2">
+        <p className="mb-2 text-xs text-muted">Images (importées depuis votre poste)</p>
+        <ImageManager images={images} onChange={setImages} />
+      </div>
       <input name="name" required placeholder="Nom" className="input sm:col-span-2" />
       <input name="sku" required placeholder="SKU" className="input" />
       <input name="brand" placeholder="Marque" className="input" />
@@ -247,12 +266,13 @@ function NewProductForm({
       <input name="price" required type="number" step="0.01" placeholder="Prix" className="input" />
       <input name="cost" type="number" step="0.01" placeholder="Coût d'achat" className="input" />
       <input name="stock" type="number" placeholder="Stock" className="input" />
-      <input name="image" required type="url" placeholder="URL image" className="input" />
       <textarea name="description" required placeholder="Description" className="input sm:col-span-2" rows={2} />
       <label className="flex items-center gap-2 text-sm sm:col-span-2">
         <input name="published" type="checkbox" defaultChecked /> Publier immédiatement
       </label>
-      {error && <p className="text-sm text-danger sm:col-span-2">{error}</p>}
+      {(localError || error) && (
+        <p className="text-sm text-danger sm:col-span-2">{localError || error}</p>
+      )}
       <button type="submit" disabled={pending} className="btn-primary sm:col-span-2">
         {pending ? '…' : 'Créer l’article'}
       </button>

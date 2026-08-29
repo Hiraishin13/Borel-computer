@@ -16,16 +16,18 @@ import { Promo } from '../src/models/Promo'
 import { slugify } from '../src/lib/utils'
 import { ASSEMBLY_SKU, ASSEMBLY_FEE } from '../src/lib/constants'
 
-const IMG: Record<string, string> = {
-  CPU: 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=800',
-  'Carte mère': 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800',
-  GPU: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=800',
-  RAM: 'https://images.unsplash.com/photo-1541029071515-84cc54f84dc5?w=800',
-  Stockage: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=800',
-  Refroidissement: 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=800',
-  Alimentation: 'https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=800',
-  Boîtier: 'https://images.unsplash.com/photo-1624705002806-5d72df19c3ad?w=800',
-  default: 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=800',
+const U = (id: string) => `https://images.unsplash.com/photo-${id}?w=900&q=80`
+
+const IMG: Record<string, string[]> = {
+  CPU: [U('1555617981-dac3880eac6e'), U('1591799264318-7e6ef8ddb7ea'), U('1518770660439-4636190af475')],
+  'Carte mère': [U('1518770660439-4636190af475'), U('1562976540-1502c2145186'), U('1591488320449-011701bb6704')],
+  GPU: [U('1591488320449-011701bb6704'), U('1587202372616-b43abea06c2a'), U('1600348759986-f5f8f0f9f56b')],
+  RAM: [U('1541029071515-84cc54f84dc5'), U('1587202372616-b43abea06c2a')],
+  Stockage: [U('1597872200969-2b65d56bd16b'), U('1618410320928-25228d811631')],
+  Refroidissement: [U('1587202372775-e229f172b9d7'), U('1624705002806-5d72df19c3ad')],
+  Alimentation: [U('1587202372634-32705e3bf49c'), U('1587202372775-e229f172b9d7')],
+  'Boîtier': [U('1624705002806-5d72df19c3ad'), U('1600348759986-f5f8f0f9f56b'), U('1587202372775-e229f172b9d7')],
+  default: [U('1587202372775-e229f172b9d7')],
 }
 
 type Seed = {
@@ -126,7 +128,7 @@ const catalogExtras: Seed[] = [
 
 async function upsert(s: Seed, category: string) {
   const slug = slugify(`${s.brand} ${s.name}`.trim())
-  const img = IMG[s.subcategory] ?? IMG.default
+  const imgs = IMG[s.subcategory] ?? IMG.default
   await Product.updateOne(
     { sku: s.sku },
     {
@@ -155,8 +157,8 @@ async function upsert(s: Seed, category: string) {
         specifications: s.specifications,
         variants: s.colors ? [{ name: 'Couleur', options: s.colors }] : [],
         warranty: '2 ans',
-        thumbnail: img,
-        images: [img],
+        thumbnail: imgs[0],
+        images: imgs,
         tags: [s.brand.toLowerCase(), s.subcategory.toLowerCase()],
       },
     },
@@ -201,8 +203,8 @@ async function main() {
         specifications: { 'Délai': '3 à 5 jours ouvrés', Garantie: 'Atelier 2 ans' },
         variants: [],
         warranty: '2 ans',
-        thumbnail: IMG.default,
-        images: [IMG.default],
+        thumbnail: IMG.default[0],
+        images: IMG.default,
         tags: ['service'],
       },
     },
@@ -231,7 +233,7 @@ async function main() {
       markupPct: 8,
       published: true,
       featured: true,
-      heroImage: IMG.GPU,
+      heroImage: IMG.GPU[0],
       parts: [
         part('CPU', 'CPU-R7-7800X3D'),
         part('Carte mère', 'MB-MSI-B650P'),
@@ -249,7 +251,7 @@ async function main() {
       description: 'Le haut du panier pour le jeu 4K et la création lourde.',
       markupPct: 7,
       published: true,
-      heroImage: IMG.GPU,
+      heroImage: IMG.GPU[0],
       parts: [
         part('CPU', 'CPU-I9-14900K'),
         part('Carte mère', 'MB-ASUS-Z790A'),
@@ -267,7 +269,7 @@ async function main() {
       description: 'Montage vidéo, 3D et rendu : beaucoup de cœurs et de RAM.',
       markupPct: 6,
       published: true,
-      heroImage: IMG.CPU,
+      heroImage: IMG.CPU[0],
       parts: [
         part('CPU', 'CPU-R9-7900X'),
         part('Carte mère', 'MB-ASUS-B650EF'),
@@ -285,7 +287,7 @@ async function main() {
       description: 'Esport et jeux 1080p sans compromis, prix contenu.',
       markupPct: 10,
       published: true,
-      heroImage: IMG.GPU,
+      heroImage: IMG.GPU[0],
       parts: [
         part('CPU', 'CPU-R5-7600X'),
         part('Carte mère', 'MB-MSI-B650P'),

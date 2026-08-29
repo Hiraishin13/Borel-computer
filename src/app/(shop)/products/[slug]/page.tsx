@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import { connectDB } from '@/lib/mongodb'
 import { Product as ProductModel } from '@/models/Product'
 import { serializeProduct } from '@/lib/serializers'
@@ -8,6 +7,7 @@ import { formatPrice, discountPercent } from '@/lib/utils'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { Badge } from '@/components/ui/Badge'
 import { AddToCartButton } from '@/components/product/AddToCartButton'
+import { ProductGallery } from '@/components/product/ProductGallery'
 import { ProductBehaviorTracker } from '@/components/product/ProductBehaviorTracker'
 import { Recommendations } from '@/components/product/Recommendations'
 import { RecentlyViewed } from '@/components/product/RecentlyViewed'
@@ -60,27 +60,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
         }}
       />
       <div className="grid gap-12 lg:grid-cols-2">
-        <div className="space-y-4">
-          <div className="relative aspect-square overflow-hidden rounded-lg bg-secondary">
-            <Image
-              src={product.thumbnail}
-              alt={product.name}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-          </div>
-          {product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-3">
-              {product.images.slice(0, 4).map((src) => (
-                <div key={src} className="relative aspect-square overflow-hidden rounded-md bg-secondary">
-                  <Image src={src} alt="" fill className="object-cover" sizes="120px" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductGallery
+          images={product.images.length ? product.images : [product.thumbnail]}
+          alt={product.name}
+        />
 
         <div>
           <p className="text-xs uppercase tracking-wider text-muted">{product.subcategory}</p>

@@ -69,6 +69,11 @@ export const checkoutSchema = z.object({
   couponCode: z.string().optional(),
 })
 
+// Accepte les URLs absolues (Vercel Blob) et les chemins relatifs (/uploads/... en dev)
+const imageRef = z.string().min(1).refine((s) => s.startsWith('http') || s.startsWith('/'), {
+  message: 'URL ou chemin image invalide',
+})
+
 export const productSchema = z.object({
   sku: z.string().min(1),
   name: z.string().min(1),
@@ -80,7 +85,7 @@ export const productSchema = z.object({
   discountPrice: z.number().positive().optional(),
   cost: z.number().min(0).optional().default(0),
   stock: z.number().int().min(0),
-  images: z.array(z.string().url()).min(1),
+  images: z.array(imageRef).min(1),
   specifications: z.record(z.string()).optional().default({}),
   featured: z.boolean().optional().default(false),
   published: z.boolean().optional().default(true),
@@ -90,10 +95,15 @@ export const productUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   brand: z.string().optional(),
   description: z.string().min(1).optional(),
+  category: z.string().min(1).optional(),
+  subcategory: z.string().min(1).optional(),
   price: z.number().positive().optional(),
   discountPrice: z.number().positive().nullable().optional(),
   cost: z.number().min(0).optional(),
   stock: z.number().int().min(0).optional(),
+  images: z.array(imageRef).min(1).optional(),
+  thumbnail: imageRef.optional(),
+  specifications: z.record(z.string()).optional(),
   featured: z.boolean().optional(),
   published: z.boolean().optional(),
 })
