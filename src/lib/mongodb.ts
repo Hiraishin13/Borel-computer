@@ -25,7 +25,10 @@ export async function connectDB(): Promise<typeof mongoose> {
     cached.promise = mongoose.connect(env.mongodbUri, {
       bufferCommands: false,
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 8000,
+      // marge pour un cluster M0 qui sort de veille + cold start serverless
+      serverSelectionTimeoutMS: 30000,
+      connectTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
     })
   }
 
