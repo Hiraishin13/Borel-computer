@@ -21,7 +21,8 @@ Admin de démo : `admin@borelcomputer.com` / `admin1234` — page `/admin/dashbo
 | Commande            | Description                          |
 | ------------------- | ----------------------------------- |
 | `npm run dev`       | Serveur de développement            |
-| `npm run build`     | Build de production                 |
+| `npm run build`     | Build de production (Vercel, dossier `.next`) |
+| `npm run build:local` | Build de vérification dans `.next-build` — à utiliser si `npm run dev` tourne (évite de corrompre son cache) |
 | `npm run start`     | Serveur de production               |
 | `npm run lint`      | ESLint                              |
 | `npm run typecheck` | Vérification TypeScript             |

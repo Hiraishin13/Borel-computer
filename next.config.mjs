@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Le build de prod écrit dans un dossier séparé pour ne pas corrompre le cache
+  // du serveur `next dev` s'il tourne en parallèle.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
