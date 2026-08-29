@@ -17,6 +17,28 @@ export interface InvoiceData {
   totals: { subtotal: number; discount: number; tax: number; shipping: number; total: number }
 }
 
+/** Personnalisation du bloc vendeur / mentions de la facture. */
+export interface InvoiceConfig {
+  sellerName: string
+  sellerAddress: string
+  sellerPhone: string
+  sellerEmail: string
+  sellerTaxId: string
+  invoiceFooter: string
+  taxRate: number
+}
+
+export const DEFAULT_INVOICE_CONFIG: InvoiceConfig = {
+  sellerName: SITE.name,
+  sellerAddress: '',
+  sellerPhone: '',
+  sellerEmail: 'contact@borelcomputer.com',
+  sellerTaxId: '',
+  invoiceFooter:
+    'Cette facture fait foi de commande. Le paiement s’effectue au moment de la remise des articles.',
+  taxRate: 0.2,
+}
+
 export function invoiceFromDraft(draft: OrderDraft): InvoiceData {
   return draft
 }
@@ -69,7 +91,10 @@ export function invoiceFromOrder(order: OrderLike, email: string): InvoiceData {
 }
 
 /** Construit le PDF de facture (jsPDF), utilisable côté navigateur ET côté serveur (Node). */
-export async function buildInvoice(data: InvoiceData) {
+export async function buildInvoice(
+  data: InvoiceData,
+  cfg: InvoiceConfig = DEFAULT_INVOICE_CONFIG,
+) {
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
 
@@ -82,7 +107,7 @@ export async function buildInvoice(data: InvoiceData) {
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(20)
-  doc.text(SITE.name, marginX, y)
+  doc.text(cfg.sellerName || SITE.name, marginX, y)
   doc.setTextColor(...accent)
   doc.setFontSize(22)
   doc.text('FACTURE', pageW - marginX, y, { align: 'right' })
@@ -92,7 +117,6 @@ export async function buildInvoice(data: InvoiceData) {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(...grey)
-  doc.text('Boutique informatique haut de gamme', marginX, y)
   doc.text(`N° ${data.orderNumber}`, pageW - marginX, y, { align: 'right' })
   y += 12
   doc.text(`Date : ${formatDate(data.createdAt)}`, pageW - marginX, y, { align: 'right' })
@@ -107,7 +131,13 @@ export async function buildInvoice(data: InvoiceData) {
   doc.setFontSize(9)
   y += 14
 
-  const seller = [SITE.name, 'contact@borelcomputer.com', SITE.url.replace(/^https?:\/\//, '')]
+  const seller = [
+    cfg.sellerName || SITE.name,
+    ...cfg.sellerAddress.split('\n').filter(Boolean),
+    cfg.sellerPhone,
+    cfg.sellerEmail,
+    cfg.sellerTaxId ? `N° ${cfg.sellerTaxId}` : '',
+  ].filter(Boolean)
   const client = [
     `${data.customer.firstName} ${data.customer.lastName}`,
     data.customer.phone,
@@ -162,7 +192,7 @@ export async function buildInvoice(data: InvoiceData) {
   }
   line('Sous-total', money(data.totals.subtotal))
   if (data.totals.discount > 0) line('Remise', `-${money(data.totals.discount)}`)
-  line('TVA (20%)', money(data.totals.tax))
+  line(`Taxes (${Math.round(cfg.taxRate * 100)}%)`, money(data.totals.tax))
   line('Livraison', data.totals.shipping === 0 ? 'Offerte' : money(data.totals.shipping))
   y += 4
   doc.setDrawColor(...accent)
@@ -183,13 +213,11 @@ export async function buildInvoice(data: InvoiceData) {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(...grey)
+  if (cfg.invoiceFooter) {
+    doc.text(doc.splitTextToSize(cfg.invoiceFooter, pageW - marginX * 2), marginX, y + 18)
+  }
   doc.text(
-    'Cette facture fait foi de commande. Le paiement s’effectue au moment de la remise des articles.',
-    marginX,
-    y + 18,
-  )
-  doc.text(
-    `${SITE.name} — Facture générée le ${formatDate(new Date())} — Document n° ${data.orderNumber}`,
+    `${cfg.sellerName || SITE.name} — Facture générée le ${formatDate(new Date())} — Document n° ${data.orderNumber}`,
     marginX,
     doc.internal.pageSize.getHeight() - 36,
   )
@@ -198,13 +226,13 @@ export async function buildInvoice(data: InvoiceData) {
 }
 
 /** Navigateur : génère et télécharge la facture. */
-export async function downloadInvoice(data: InvoiceData): Promise<void> {
-  const doc = await buildInvoice(data)
+export async function downloadInvoice(data: InvoiceData, cfg?: InvoiceConfig): Promise<void> {
+  const doc = await buildInvoice(data, cfg)
   doc.save(`facture-${data.orderNumber}.pdf`)
 }
 
 /** Serveur : renvoie le PDF encodé en base64 (pour pièce jointe email). */
-export async function invoicePdfBase64(data: InvoiceData): Promise<string> {
-  const doc = await buildInvoice(data)
+export async function invoicePdfBase64(data: InvoiceData, cfg?: InvoiceConfig): Promise<string> {
+  const doc = await buildInvoice(data, cfg)
   return doc.output('datauristring').split(',')[1]
 }

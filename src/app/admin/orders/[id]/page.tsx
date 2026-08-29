@@ -7,6 +7,7 @@ import { apiClient } from '@/lib/api-client'
 import { formatPrice, formatDate } from '@/lib/utils'
 import { ORDER_STATUS_LABELS } from '@/lib/constants'
 import { downloadInvoice, invoiceFromOrder } from '@/lib/invoice'
+import { useSettings } from '@/hooks/useSettings'
 import type { Order } from '@/types'
 
 interface OrderDetail {
@@ -19,6 +20,7 @@ const STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] 
 
 export default function AdminOrderDetailPage({ params }: { params: { id: string } }) {
   const qc = useQueryClient()
+  const settings = useSettings()
   const [msg, setMsg] = useState<string | null>(null)
 
   const { data, isLoading } = useQuery({
@@ -156,7 +158,7 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
             <h2 className="text-sm font-semibold">Facture</h2>
             <button
               onClick={() =>
-                downloadInvoice(invoiceFromOrder(o, customer?.email ?? ''))
+                downloadInvoice(invoiceFromOrder(o, customer?.email ?? ''), settings)
               }
               className="btn-secondary w-full"
             >

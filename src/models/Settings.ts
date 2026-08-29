@@ -20,6 +20,18 @@ const settingsSchema = new Schema(
     announcement: { type: String, default: '' },
     announcementActive: { type: Boolean, default: false },
 
+    // --- Bloc vendeur affiché sur la facture ---
+    sellerName: { type: String, default: SITE.name },
+    sellerAddress: { type: String, default: '' },
+    sellerPhone: { type: String, default: '' },
+    sellerEmail: { type: String, default: 'contact@borelcomputer.com' },
+    sellerTaxId: { type: String, default: '' },
+    invoiceFooter: {
+      type: String,
+      default:
+        'Cette facture fait foi de commande. Le paiement s’effectue au moment de la remise des articles.',
+    },
+
     currency: { type: String, default: CURRENCY },
     taxRate: { type: Number, default: TAX_RATE, min: 0, max: 1 },
     freeShippingThreshold: { type: Number, default: FREE_SHIPPING_THRESHOLD, min: 0 },

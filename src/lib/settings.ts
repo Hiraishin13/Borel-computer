@@ -16,6 +16,12 @@ export interface ShopSettings {
   whatsappNumber: string
   announcement: string
   announcementActive: boolean
+  sellerName: string
+  sellerAddress: string
+  sellerPhone: string
+  sellerEmail: string
+  sellerTaxId: string
+  invoiceFooter: string
   currency: string
   taxRate: number
   freeShippingThreshold: number
@@ -31,6 +37,13 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '',
   announcement: '',
   announcementActive: false,
+  sellerName: SITE.name,
+  sellerAddress: '',
+  sellerPhone: '',
+  sellerEmail: 'contact@borelcomputer.com',
+  sellerTaxId: '',
+  invoiceFooter:
+    'Cette facture fait foi de commande. Le paiement s’effectue au moment de la remise des articles.',
   currency: CURRENCY,
   taxRate: TAX_RATE,
   freeShippingThreshold: FREE_SHIPPING_THRESHOLD,

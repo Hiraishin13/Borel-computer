@@ -16,6 +16,9 @@ export default function AdminSettingsPage() {
         <ShopSection />
         <PricingSection />
         <div className="xl:col-span-2">
+          <InvoiceSection />
+        </div>
+        <div className="xl:col-span-2">
           <TeamSection />
         </div>
       </div>
@@ -118,6 +121,12 @@ interface ShopSettings {
   whatsappNumber: string
   announcement: string
   announcementActive: boolean
+  sellerName: string
+  sellerAddress: string
+  sellerPhone: string
+  sellerEmail: string
+  sellerTaxId: string
+  invoiceFooter: string
   currency: string
   taxRate: number
   freeShippingThreshold: number
@@ -268,6 +277,86 @@ function PricingSection() {
           <input name="lowStockThreshold" type="number" step="1" defaultValue={s.lowStockThreshold} className="input mt-1" />
         </label>
         <button disabled={save.isPending} className="btn-primary sm:col-span-3">
+          {save.isPending ? '…' : 'Enregistrer'}
+        </button>
+      </form>
+      <Feedback msg={msg} />
+    </Card>
+  )
+}
+
+/* ---------- Facture / Vendeur ---------- */
+function InvoiceSection() {
+  const { query, save } = useShopSettings()
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const s = query.data
+
+  if (query.isLoading || !s) return <Card title="Facture (bloc vendeur)"><Loader /></Card>
+
+  return (
+    <Card title="Facture (bloc vendeur)">
+      <p className="mb-4 text-xs text-muted">
+        Ces informations apparaissent dans l&apos;encadré « Vendeur » de la facture PDF et dans les
+        emails.
+      </p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          const f = new FormData(e.currentTarget)
+          save.mutate(
+            {
+              sellerName: String(f.get('sellerName')),
+              sellerAddress: String(f.get('sellerAddress')),
+              sellerPhone: String(f.get('sellerPhone')),
+              sellerEmail: String(f.get('sellerEmail')),
+              sellerTaxId: String(f.get('sellerTaxId')),
+              invoiceFooter: String(f.get('invoiceFooter')),
+            },
+            {
+              onSuccess: () => setMsg({ ok: true, text: 'Facture mise à jour.' }),
+              onError: (e2) =>
+                setMsg({ ok: false, text: e2 instanceof Error ? e2.message : 'Erreur' }),
+            },
+          )
+        }}
+        className="grid gap-3 sm:grid-cols-2"
+      >
+        <label className="text-xs text-muted">
+          Raison sociale
+          <input name="sellerName" defaultValue={s.sellerName} className="input mt-1" />
+        </label>
+        <label className="text-xs text-muted">
+          N° d&apos;identification (RCCM / TVA / SIRET…)
+          <input name="sellerTaxId" defaultValue={s.sellerTaxId} className="input mt-1" />
+        </label>
+        <label className="text-xs text-muted sm:col-span-2">
+          Adresse (une ligne par retour à la ligne)
+          <textarea
+            name="sellerAddress"
+            defaultValue={s.sellerAddress}
+            rows={2}
+            className="input mt-1"
+          />
+        </label>
+        <label className="text-xs text-muted">
+          Téléphone
+          <input name="sellerPhone" defaultValue={s.sellerPhone} className="input mt-1" />
+        </label>
+        <label className="text-xs text-muted">
+          Email
+          <input name="sellerEmail" type="email" defaultValue={s.sellerEmail} className="input mt-1" />
+        </label>
+        <label className="text-xs text-muted sm:col-span-2">
+          Mention légale (bas de facture)
+          <textarea
+            name="invoiceFooter"
+            defaultValue={s.invoiceFooter}
+            rows={2}
+            maxLength={400}
+            className="input mt-1"
+          />
+        </label>
+        <button disabled={save.isPending} className="btn-primary sm:col-span-2">
           {save.isPending ? '…' : 'Enregistrer'}
         </button>
       </form>

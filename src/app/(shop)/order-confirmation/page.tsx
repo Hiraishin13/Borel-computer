@@ -11,7 +11,8 @@ import { useSettings } from '@/hooks/useSettings'
 
 function Confirmation() {
   const orderNumber = useSearchParams().get('order') ?? ''
-  const { whatsappNumber } = useSettings()
+  const settings = useSettings()
+  const { whatsappNumber } = settings
   const [draft, setDraft] = useState<OrderDraft | null>(null)
   const [downloading, setDownloading] = useState(false)
 
@@ -23,7 +24,7 @@ function Confirmation() {
     if (!draft) return
     setDownloading(true)
     try {
-      await downloadInvoice(draft)
+      await downloadInvoice(draft, settings)
     } finally {
       setDownloading(false)
     }

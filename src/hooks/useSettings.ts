@@ -16,6 +16,12 @@ export interface PublicSettings {
   contactEmail: string
   whatsappNumber: string
   announcement: string
+  sellerName: string
+  sellerAddress: string
+  sellerPhone: string
+  sellerEmail: string
+  sellerTaxId: string
+  invoiceFooter: string
   currency: string
   taxRate: number
   freeShippingThreshold: number
@@ -29,6 +35,13 @@ const FALLBACK: PublicSettings = {
   contactEmail: 'contact@borelcomputer.com',
   whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '',
   announcement: '',
+  sellerName: 'Borel Computer',
+  sellerAddress: '',
+  sellerPhone: '',
+  sellerEmail: 'contact@borelcomputer.com',
+  sellerTaxId: '',
+  invoiceFooter:
+    'Cette facture fait foi de commande. Le paiement s’effectue au moment de la remise des articles.',
   currency: CURRENCY,
   taxRate: TAX_RATE,
   freeShippingThreshold: FREE_SHIPPING_THRESHOLD,
