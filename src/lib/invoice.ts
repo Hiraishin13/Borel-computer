@@ -7,7 +7,7 @@ import type { OrderDraft } from './order-draft'
  * which jsPDF's built-in Helvetica renders as a missing glyph.
  */
 function formatPrice(amount: number): string {
-  return `${amount.toFixed(2).replace('.', ',')} EUR`
+  return `$${amount.toFixed(2)}`
 }
 
 /**

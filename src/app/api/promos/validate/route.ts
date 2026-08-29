@@ -22,7 +22,7 @@ export const POST = handle(async (request: NextRequest) => {
   if (cartTotal < promo.minPurchase) {
     return ok({
       valid: false,
-      message: `Minimum d'achat de ${promo.minPurchase} € requis`,
+      message: `Minimum d'achat de $${promo.minPurchase} requis`,
     })
   }
 

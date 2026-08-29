@@ -88,7 +88,7 @@ async function main() {
     const slug = slugify(p.name)
     await Product.updateOne(
       { sku: p.sku },
-      { $set: { ...p, slug, thumbnail: IMG, images: [IMG] } },
+      { $set: { ...p, slug, currency: 'USD', thumbnail: IMG, images: [IMG] } },
       { upsert: true },
     )
   }

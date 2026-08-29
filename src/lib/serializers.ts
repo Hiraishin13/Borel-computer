@@ -1,4 +1,5 @@
 import type { Order, Product, Review } from '@/types'
+import { CURRENCY } from './constants'
 
 
 /** Converts a Mongoose lean document into a plain, client-safe object. */
@@ -18,7 +19,7 @@ export function serializeProduct(doc: any): Product {
     subcategory: doc.subcategory,
     price: doc.price,
     discountPrice: doc.discountPrice ?? undefined,
-    currency: doc.currency ?? 'EUR',
+    currency: doc.currency ?? CURRENCY,
     stock: doc.stock ?? 0,
     thumbnail: doc.thumbnail,
     images: doc.images ?? [],

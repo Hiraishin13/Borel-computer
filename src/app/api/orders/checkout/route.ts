@@ -7,7 +7,12 @@ import { Promo } from '@/models/Promo'
 import { requireAuth } from '@/lib/auth'
 import { generateOrderNumber } from '@/lib/utils'
 import { sendEmail, emailTemplates } from '@/lib/email'
-import { TAX_RATE, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING } from '@/lib/constants'
+import {
+  TAX_RATE,
+  FREE_SHIPPING_THRESHOLD,
+  STANDARD_SHIPPING,
+  EXPRESS_SHIPPING_SURCHARGE,
+} from '@/lib/constants'
 import { handle, ok, fail } from '@/lib/api-response'
 
 const schema = z.object({
@@ -78,7 +83,7 @@ export const POST = handle(async (request: NextRequest) => {
   const taxable = subtotal - discount
   const tax = +(taxable * TAX_RATE).toFixed(2)
   const baseShipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING
-  const shipping = baseShipping + (body.shippingMethod === 'express' ? 15 : 0)
+  const shipping = baseShipping + (body.shippingMethod === 'express' ? EXPRESS_SHIPPING_SURCHARGE : 0)
   const total = +(taxable + tax + shipping).toFixed(2)
 
   // Paiement en espèces : la commande est enregistrée "en attente", le règlement

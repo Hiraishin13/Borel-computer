@@ -21,7 +21,7 @@ export const emailTemplates = {
   orderConfirmation(orderNumber: string, total: number) {
     return {
       subject: `Confirmation de commande ${orderNumber}`,
-      html: `<h1>Merci pour votre commande</h1><p>Commande <strong>${orderNumber}</strong> confirmée.</p><p>Total : ${total.toFixed(2)} €</p>`,
+      html: `<h1>Merci pour votre commande</h1><p>Commande <strong>${orderNumber}</strong> confirmée.</p><p>Total : $${total.toFixed(2)}</p>`,
     }
   },
   passwordReset(link: string) {

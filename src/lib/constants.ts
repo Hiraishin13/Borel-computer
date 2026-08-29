@@ -6,9 +6,14 @@ export const SITE = {
   url: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
 } as const
 
-export const TAX_RATE = 0.2 // TVA France 20 %
+// Devise par défaut de la boutique
+export const CURRENCY = 'USD'
+export const CURRENCY_LOCALE = 'en-US'
+
+export const TAX_RATE = 0.2 // taxes appliquées au sous-total
 export const FREE_SHIPPING_THRESHOLD = 100
 export const STANDARD_SHIPPING = 9.9
+export const EXPRESS_SHIPPING_SURCHARGE = 15
 
 export const CATEGORIES = [
   {

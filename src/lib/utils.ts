@@ -1,12 +1,13 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { CURRENCY, CURRENCY_LOCALE } from './constants'
 
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs))
 }
 
-export function formatPrice(amount: number, currency = 'EUR'): string {
-  return new Intl.NumberFormat('fr-FR', {
+export function formatPrice(amount: number, currency = CURRENCY): string {
+  return new Intl.NumberFormat(CURRENCY_LOCALE, {
     style: 'currency',
     currency,
   }).format(amount)

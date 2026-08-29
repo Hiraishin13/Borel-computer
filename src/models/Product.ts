@@ -18,7 +18,7 @@ const productSchema = new Schema(
     subcategory: { type: String, required: true, index: true },
     price: { type: Number, required: true, min: 0 },
     discountPrice: { type: Number, min: 0 },
-    currency: { type: String, default: 'EUR' },
+    currency: { type: String, default: 'USD' },
     stock: { type: Number, default: 0, min: 0 },
     thumbnail: { type: String, required: true },
     images: { type: [String], default: [] },

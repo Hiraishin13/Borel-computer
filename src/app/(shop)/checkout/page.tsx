@@ -6,6 +6,8 @@ import { useCartStore } from '@/store/cart'
 import { useAuthStore } from '@/store/auth'
 import { CartSummary } from '@/components/cart/CartSummary'
 import { apiClient } from '@/lib/api-client'
+import { formatPrice } from '@/lib/utils'
+import { EXPRESS_SHIPPING_SURCHARGE } from '@/lib/constants'
 import { saveOrderDraft, type OrderDraft } from '@/lib/order-draft'
 import { WHATSAPP_NUMBER } from '@/lib/whatsapp'
 
@@ -118,7 +120,8 @@ export default function CheckoutPage() {
               (3-5 jours)
             </label>
             <label className="flex items-center gap-3 text-sm">
-              <input type="radio" name="shippingMethod" value="express" /> Express (24-48h) — +15 €
+              <input type="radio" name="shippingMethod" value="express" /> Express (24-48h) —{' '}
+              {formatPrice(EXPRESS_SHIPPING_SURCHARGE)}
             </label>
           </fieldset>
 
