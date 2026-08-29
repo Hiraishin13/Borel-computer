@@ -8,7 +8,7 @@ import { useCartStore } from '@/store/cart'
 import { useAuthStore } from '@/store/auth'
 import { cn } from '@/lib/utils'
 import { MobileNav } from './MobileNav'
-import { CartIcon, HeartIcon, LogInIcon, UserIcon } from '@/components/ui/icons'
+import { CartIcon, HeartIcon, UserIcon } from '@/components/ui/icons'
 
 export function Header() {
   const pathname = usePathname()
@@ -105,11 +105,11 @@ export function Header() {
           ) : (
             <Link
               href="/login"
-              className="flex items-center gap-1.5 rounded-md border border-white/15 px-2.5 py-1.5 text-sm font-medium text-light transition-colors hover:border-accent hover:text-accent"
+              className="text-muted transition-colors hover:text-light"
               aria-label="Se connecter"
+              title="Se connecter"
             >
-              <LogInIcon width={16} height={16} />
-              <span className="hidden sm:inline">Se connecter</span>
+              <UserIcon />
             </Link>
           )}
 
