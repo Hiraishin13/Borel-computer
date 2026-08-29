@@ -5,7 +5,11 @@ import type { Build, BuildPart } from '@/types'
  * Sérialise un Build Mongoose avec ses composants peuplés.
  * `productMap` : id produit -> document produit lean.
  */
-export function serializeBuild(doc: any, productMap: Map<string, any>): Build {
+export function serializeBuild(
+  doc: any,
+  productMap: Map<string, any>,
+  assemblyFee: number = ASSEMBLY_FEE,
+): Build {
   const parts: BuildPart[] = (doc.parts ?? [])
     .map((p: any) => {
       const prod = productMap.get(String(p.productId))
@@ -26,7 +30,7 @@ export function serializeBuild(doc: any, productMap: Map<string, any>): Build {
 
   const componentsTotal = parts.reduce((s, p) => s + p.price, 0)
   const markupPct = doc.markupPct ?? 0
-  const price = Math.round(componentsTotal * (1 + markupPct / 100) + ASSEMBLY_FEE)
+  const price = Math.round(componentsTotal * (1 + markupPct / 100) + assemblyFee)
 
   return {
     id: String(doc._id),
@@ -38,7 +42,7 @@ export function serializeBuild(doc: any, productMap: Map<string, any>): Build {
     parts,
     markupPct,
     componentsTotal: Math.round(componentsTotal),
-    assemblyFee: ASSEMBLY_FEE,
+    assemblyFee,
     price,
     published: Boolean(doc.published),
     featured: Boolean(doc.featured),

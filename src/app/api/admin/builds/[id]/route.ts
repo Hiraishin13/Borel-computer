@@ -5,6 +5,7 @@ import { Build } from '@/models/Build'
 import { Product } from '@/models/Product'
 import { requireAdmin } from '@/lib/auth'
 import { serializeBuild } from '@/lib/build-serializer'
+import { getSettings } from '@/lib/settings'
 import { handle, ok, fail } from '@/lib/api-response'
 
 type Params = { params: { id: string } }
@@ -36,12 +37,13 @@ export const PATCH = handle(async (request: NextRequest, { params }: Params) => 
   const doc = await Build.findByIdAndUpdate(params.id, body, { new: true }).lean()
   if (!doc) return fail('NOT_FOUND', 'Configuration non trouvée', 404)
 
-  const products = await Product.find({
-    _id: { $in: (doc.parts ?? []).map((p) => p.productId) },
-  }).lean()
+  const [products, cfg] = await Promise.all([
+    Product.find({ _id: { $in: (doc.parts ?? []).map((p) => p.productId) } }).lean(),
+    getSettings(),
+  ])
   const map = new Map(products.map((p) => [String(p._id), p]))
 
-  return ok(serializeBuild(doc, map))
+  return ok(serializeBuild(doc, map, cfg.assemblyFee))
 })
 
 export const DELETE = handle(async (request: NextRequest, { params }: Params) => {

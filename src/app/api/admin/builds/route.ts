@@ -5,6 +5,7 @@ import { Build } from '@/models/Build'
 import { Product } from '@/models/Product'
 import { requireAdmin } from '@/lib/auth'
 import { serializeBuild } from '@/lib/build-serializer'
+import { getSettings } from '@/lib/settings'
 import { slugify } from '@/lib/utils'
 import { PC_USAGES } from '@/lib/constants'
 import { handle, ok } from '@/lib/api-response'
@@ -41,8 +42,8 @@ export const GET = handle(async (request: NextRequest) => {
   requireAdmin(request)
   await connectDB()
   const builds = await Build.find().sort({ createdAt: -1 }).lean()
-  const map = await withProducts(builds)
-  return ok({ data: builds.map((b) => serializeBuild(b, map)) })
+  const [map, cfg] = await Promise.all([withProducts(builds), getSettings()])
+  return ok({ data: builds.map((b) => serializeBuild(b, map, cfg.assemblyFee)) })
 })
 
 export const POST = handle(async (request: NextRequest) => {
@@ -56,8 +57,8 @@ export const POST = handle(async (request: NextRequest) => {
     slug: `${slugify(body.name)}-${Date.now().toString(36)}`,
   })
 
-  const map = await withProducts([doc.toObject()])
-  return ok(serializeBuild(doc.toObject(), map), 201)
+  const [map, cfg] = await Promise.all([withProducts([doc.toObject()]), getSettings()])
+  return ok(serializeBuild(doc.toObject(), map, cfg.assemblyFee), 201)
 })
 
 export const dynamic = 'force-dynamic'

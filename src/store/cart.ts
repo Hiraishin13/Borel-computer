@@ -16,7 +16,13 @@ interface CartState {
   clearCoupon: () => void
   clear: () => void
   count: () => number
-  totals: () => CartTotals
+  totals: (cfg?: TotalsConfig) => CartTotals
+}
+
+interface TotalsConfig {
+  taxRate: number
+  freeShippingThreshold: number
+  standardShipping: number
 }
 
 export const useCartStore = create<CartState>()(
@@ -59,14 +65,17 @@ export const useCartStore = create<CartState>()(
 
       count: () => get().items.reduce((n, i) => n + i.quantity, 0),
 
-      totals: () => {
+      totals: (cfg) => {
+        const taxRate = cfg?.taxRate ?? TAX_RATE
+        const freeAt = cfg?.freeShippingThreshold ?? FREE_SHIPPING_THRESHOLD
+        const std = cfg?.standardShipping ?? STANDARD_SHIPPING
+
         const { items, couponDiscount } = get()
         const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
         const discount = Math.min(couponDiscount, subtotal)
         const taxable = subtotal - discount
-        const tax = +(taxable * TAX_RATE).toFixed(2)
-        const shipping =
-          subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING
+        const tax = +(taxable * taxRate).toFixed(2)
+        const shipping = subtotal === 0 || subtotal >= freeAt ? 0 : std
         const total = +(taxable + tax + shipping).toFixed(2)
         return { subtotal, tax, shipping, discount, total }
       },

@@ -4,6 +4,7 @@ import { Order } from '@/models/Order'
 import { User } from '@/models/User'
 import { Product } from '@/models/Product'
 import { requireAdmin } from '@/lib/auth'
+import { getSettings } from '@/lib/settings'
 import { handle, ok } from '@/lib/api-response'
 
 const ACTIVE = { status: { $ne: 'cancelled' } }
@@ -16,6 +17,7 @@ export const GET = handle(async (request: NextRequest) => {
   requireAdmin(request)
   await connectDB()
 
+  const { lowStockThreshold } = await getSettings()
   const now = new Date()
   const startThisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
@@ -105,7 +107,7 @@ export const GET = handle(async (request: NextRequest) => {
             $switch: {
               branches: [
                 { case: { $eq: ['$stock', 0] }, then: 'out' },
-                { case: { $lte: ['$stock', 5] }, then: 'low' },
+                { case: { $lte: ['$stock', lowStockThreshold] }, then: 'low' },
               ],
               default: 'ok',
             },

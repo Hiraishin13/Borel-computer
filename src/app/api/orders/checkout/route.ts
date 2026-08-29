@@ -7,12 +7,7 @@ import { Promo } from '@/models/Promo'
 import { requireAuth } from '@/lib/auth'
 import { generateOrderNumber } from '@/lib/utils'
 import { sendEmail, emailTemplates } from '@/lib/email'
-import {
-  TAX_RATE,
-  FREE_SHIPPING_THRESHOLD,
-  STANDARD_SHIPPING,
-  EXPRESS_SHIPPING_SURCHARGE,
-} from '@/lib/constants'
+import { getSettings } from '@/lib/settings'
 import { handle, ok, fail } from '@/lib/api-response'
 
 const schema = z.object({
@@ -36,6 +31,7 @@ export const POST = handle(async (request: NextRequest) => {
   const auth = requireAuth(request)
   await connectDB()
   const body = schema.parse(await request.json())
+  const cfg = await getSettings()
 
   // Reprice server-side from the DB — never trust client prices.
   const products = await Product.find({
@@ -81,9 +77,9 @@ export const POST = handle(async (request: NextRequest) => {
   }
 
   const taxable = subtotal - discount
-  const tax = +(taxable * TAX_RATE).toFixed(2)
-  const baseShipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING
-  const shipping = baseShipping + (body.shippingMethod === 'express' ? EXPRESS_SHIPPING_SURCHARGE : 0)
+  const tax = +(taxable * cfg.taxRate).toFixed(2)
+  const baseShipping = subtotal >= cfg.freeShippingThreshold ? 0 : cfg.standardShipping
+  const shipping = baseShipping + (body.shippingMethod === 'express' ? cfg.expressSurcharge : 0)
   const total = +(taxable + tax + shipping).toFixed(2)
 
   // Paiement en espèces : la commande est enregistrée "en attente", le règlement

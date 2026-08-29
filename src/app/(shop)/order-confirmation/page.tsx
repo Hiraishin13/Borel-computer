@@ -7,9 +7,11 @@ import { loadOrderDraft, type OrderDraft } from '@/lib/order-draft'
 import { buildWhatsappUrl } from '@/lib/whatsapp'
 import { downloadInvoice } from '@/lib/invoice'
 import { formatPrice } from '@/lib/utils'
+import { useSettings } from '@/hooks/useSettings'
 
 function Confirmation() {
   const orderNumber = useSearchParams().get('order') ?? ''
+  const { whatsappNumber } = useSettings()
   const [draft, setDraft] = useState<OrderDraft | null>(null)
   const [downloading, setDownloading] = useState(false)
 
@@ -76,7 +78,7 @@ function Confirmation() {
             </button>
 
             <a
-              href={buildWhatsappUrl(draft)}
+              href={buildWhatsappUrl(draft, whatsappNumber)}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary w-full"

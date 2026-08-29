@@ -8,14 +8,20 @@ import { useAuthStore } from '@/store/auth'
 import { CartSummary } from '@/components/cart/CartSummary'
 import { apiClient } from '@/lib/api-client'
 import { formatPrice } from '@/lib/utils'
-import { EXPRESS_SHIPPING_SURCHARGE } from '@/lib/constants'
+import { useSettings } from '@/hooks/useSettings'
 import { saveOrderDraft, type OrderDraft } from '@/lib/order-draft'
-import { WHATSAPP_NUMBER } from '@/lib/whatsapp'
 
 export default function CheckoutPage() {
   const router = useRouter()
+  const cfg = useSettings()
   const items = useCartStore((s) => s.items)
-  const totals = useCartStore((s) => s.totals())
+  const totals = useCartStore((s) =>
+    s.totals({
+      taxRate: cfg.taxRate,
+      freeShippingThreshold: cfg.freeShippingThreshold,
+      standardShipping: cfg.standardShipping,
+    }),
+  )
   const clear = useCartStore((s) => s.clear)
   const user = useAuthStore((s) => s.user)
   const token = useAuthStore((s) => s.token)
@@ -145,7 +151,7 @@ export default function CheckoutPage() {
             </label>
             <label className="flex items-center gap-3 text-sm">
               <input type="radio" name="shippingMethod" value="express" /> Express (24-48h) —{' '}
-              {formatPrice(EXPRESS_SHIPPING_SURCHARGE)}
+              {formatPrice(cfg.expressSurcharge)}
             </label>
           </fieldset>
 
@@ -154,7 +160,7 @@ export default function CheckoutPage() {
             <p className="text-muted">
               Le règlement se fait en espèces à la livraison ou au retrait. À la validation, votre
               commande et sa facture PDF sont envoyées sur WhatsApp
-              {WHATSAPP_NUMBER ? ` au +${WHATSAPP_NUMBER}` : ''} pour confirmation.
+              {cfg.whatsappNumber ? ` au +${cfg.whatsappNumber}` : ''} pour confirmation.
             </p>
           </div>
 

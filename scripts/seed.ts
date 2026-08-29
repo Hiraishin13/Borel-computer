@@ -13,6 +13,7 @@ import { User } from '../src/models/User'
 import { Product } from '../src/models/Product'
 import { Build } from '../src/models/Build'
 import { Promo } from '../src/models/Promo'
+import { Settings } from '../src/models/Settings'
 import { slugify } from '../src/lib/utils'
 import { ASSEMBLY_SKU, ASSEMBLY_FEE } from '../src/lib/constants'
 
@@ -352,8 +353,18 @@ async function main() {
     )
   }
 
+  // --- Config boutique (singleton) ---
+  await Settings.updateOne(
+    { key: 'global' },
+    {
+      $setOnInsert: { key: 'global' },
+      $set: { whatsappNumber: (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '').replace(/[^0-9]/g, '') },
+    },
+    { upsert: true, setDefaultsOnInsert: true },
+  )
+
   console.log(
-    `✓ ${components.length} composants + ${catalogExtras.length} produits + 1 service + ${builds.length} PC configurés + ${promos.length} codes promo`,
+    `✓ ${components.length} composants + ${catalogExtras.length} produits + 1 service + ${builds.length} PC configurés + ${promos.length} codes promo + config boutique`,
   )
   process.exit(0)
 }

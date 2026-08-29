@@ -1,7 +1,6 @@
 'use client'
 
 import { formatPrice } from '@/lib/utils'
-import { ASSEMBLY_FEE } from '@/lib/constants'
 import type { CompatibilityReport } from '@/lib/configurator'
 
 export interface SummaryLine {
@@ -14,6 +13,7 @@ export interface SummaryLine {
 export function ConfigSummary({
   lines,
   total,
+  assemblyFee,
   report,
   performance,
   missing,
@@ -23,6 +23,7 @@ export function ConfigSummary({
 }: {
   lines: SummaryLine[]
   total: number
+  assemblyFee: number
   report: CompatibilityReport
   performance: string
   missing: string[]
@@ -48,7 +49,7 @@ export function ConfigSummary({
         ))}
         <div className="flex justify-between gap-3 text-muted">
           <dt>Assemblage &amp; test 48h</dt>
-          <dd className="shrink-0">{formatPrice(ASSEMBLY_FEE)}</dd>
+          <dd className="shrink-0">{formatPrice(assemblyFee)}</dd>
         </div>
       </dl>
 

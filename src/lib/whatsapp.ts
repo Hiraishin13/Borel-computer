@@ -1,10 +1,12 @@
 import { formatPrice } from './utils'
 import type { OrderDraft } from './order-draft'
 
+/** Numéro de repli (avant chargement de la config boutique). */
 export const WHATSAPP_NUMBER = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '').replace(/[^0-9]/g, '')
 
 /** Builds a wa.me deep link with the full order recap as pre-filled text. */
-export function buildWhatsappUrl(draft: OrderDraft): string {
+export function buildWhatsappUrl(draft: OrderDraft, number: string = WHATSAPP_NUMBER): string {
+  const digits = number.replace(/[^0-9]/g, '')
   const { customer, shippingAddress, items, totals } = draft
 
   const lines: (string | false)[] = [
@@ -35,5 +37,5 @@ export function buildWhatsappUrl(draft: OrderDraft): string {
   ]
 
   const text = lines.filter(Boolean).join('\n')
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`
 }

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { useCartStore } from '@/store/cart'
-import { ASSEMBLY_FEE } from '@/lib/constants'
+import { useSettings } from '@/hooks/useSettings'
 import type { Build } from '@/types'
 import {
   CONFIG_SLOTS,
@@ -25,6 +25,7 @@ function ConfiguratorInner() {
   const router = useRouter()
   const buildId = useSearchParams().get('build')
   const addItem = useCartStore((s) => s.addItem)
+  const { assemblyFee } = useSettings()
   const [selection, setSelection] = useState<Selection>({})
   const [busy, setBusy] = useState(false)
   const preloaded = useRef(false)
@@ -87,7 +88,7 @@ function ConfiguratorInner() {
   })
 
   const componentsTotal = lines.reduce((s, l) => s + l.price, 0)
-  const total = componentsTotal + ASSEMBLY_FEE
+  const total = componentsTotal + assemblyFee
 
   const missing = CONFIG_SLOTS.filter((s) => s.required && !selection[s.key]).map((s) => s.label)
 
@@ -130,7 +131,7 @@ function ConfiguratorInner() {
     void downloadConfigSheet({
       lines: [
         ...lines.map((l) => ({ slot: l.slot, name: l.name, detail: l.color, price: l.price })),
-        { slot: 'Assemblage', name: 'Assemblage, câblage & test 48h', price: ASSEMBLY_FEE },
+        { slot: 'Assemblage', name: 'Assemblage, câblage & test 48h', price: assemblyFee },
       ],
       total,
       estimatedWatts: report.estimatedWatts,
@@ -182,6 +183,7 @@ function ConfiguratorInner() {
         <ConfigSummary
           lines={lines}
           total={total}
+          assemblyFee={assemblyFee}
           report={report}
           performance={performanceTier(productFor('GPU'))}
           missing={missing}

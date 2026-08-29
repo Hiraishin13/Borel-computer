@@ -6,6 +6,7 @@ import { Header } from './Header'
 import { Footer } from './Footer'
 import { TopProgress } from './TopProgress'
 import { PageTransition } from './PageTransition'
+import { AnnouncementBar } from './AnnouncementBar'
 
 /**
  * Chrome public (header + footer). Masqué sur le back-office `/admin`, qui a son
@@ -27,6 +28,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
         <>
           <Header />
           <main className="min-h-screen pt-16">
+            <AnnouncementBar />
             <PageTransition>{children}</PageTransition>
           </main>
           <Footer />
