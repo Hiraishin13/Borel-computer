@@ -8,6 +8,7 @@ import { useCartStore } from '@/store/cart'
 import { useAuthStore } from '@/store/auth'
 import { cn } from '@/lib/utils'
 import { MobileNav } from './MobileNav'
+import { SearchBar } from './SearchBar'
 import { CartIcon, HeartIcon, UserIcon } from '@/components/ui/icons'
 
 export function Header() {
@@ -67,6 +68,8 @@ export function Header() {
               Admin
             </Link>
           )}
+
+          <SearchBar />
 
           <Link
             href="/account/wishlist"

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { Product } from '@/models/Product'
 import { serializeProduct } from '@/lib/serializers'
+import { normalizeText } from '@/lib/utils'
 import { handle, ok } from '@/lib/api-response'
 
 export const GET = handle(async (request: NextRequest) => {
@@ -12,17 +13,20 @@ export const GET = handle(async (request: NextRequest) => {
   await connectDB()
   const started = Date.now()
 
+  // recherche insensible à la casse ET aux accents via le champ searchText normalisé
+  const terms = normalizeText(q)
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+
   const filter: Record<string, unknown> = {
     published: { $ne: false },
     category: { $ne: 'services' },
-    $or: [
-      { name: { $regex: q, $options: 'i' } },
-      { tags: { $regex: q, $options: 'i' } },
-    ],
+    $and: terms.map((t) => ({ searchText: { $regex: t } })),
   }
   if (sp.get('category')) filter.category = sp.get('category')
 
-  const docs = await Product.find(filter).limit(20).lean()
+  const docs = await Product.find(filter).sort({ rating: -1, reviews: -1 }).limit(24).lean()
 
   return ok({
     data: docs.map(serializeProduct),

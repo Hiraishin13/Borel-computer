@@ -21,6 +21,14 @@ export function formatDate(input: string | Date): string {
   }).format(new Date(input))
 }
 
+/** Minuscule + sans accents, pour la recherche insensible aux diacritiques. */
+export function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

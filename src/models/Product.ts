@@ -33,11 +33,51 @@ const productSchema = new Schema(
     compatibility: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
     warranty: { type: String, default: '2 ans' },
     tags: { type: [String], default: [] },
+    /** name + brand + subcategory + tags + description, minuscule sans accents */
+    searchText: { type: String, default: '', index: true },
   },
   { timestamps: true },
 )
 
-productSchema.index({ name: 'text', description: 'text', tags: 'text' })
+/** Recalcule searchText avant chaque save/update. */
+function buildSearchText(src: Record<string, unknown>): string {
+  const variants = Array.isArray(src.variants)
+    ? (src.variants as { options?: string[] }[]).flatMap((v) => v.options ?? []).join(' ')
+    : ''
+  const parts = [
+    src.name,
+    src.brand,
+    src.subcategory,
+    src.category,
+    Array.isArray(src.tags) ? src.tags.join(' ') : '',
+    variants,
+    src.description,
+  ]
+  return parts
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+}
+
+const TEXT_KEYS = ['name', 'brand', 'subcategory', 'category', 'tags', 'description']
+
+productSchema.pre('save', function (next) {
+  this.searchText = buildSearchText(this.toObject())
+  next()
+})
+
+productSchema.pre(['findOneAndUpdate', 'updateOne', 'updateMany'], async function () {
+  const update = (this.getUpdate() ?? {}) as Record<string, unknown> & { $set?: Record<string, unknown> }
+  const set = update.$set ?? update
+  if (!TEXT_KEYS.some((k) => k in set)) return
+  const current = await this.model.findOne(this.getQuery()).lean()
+  const merged = { ...(current ?? {}), ...set } as Record<string, unknown>
+  set.searchText = buildSearchText(merged)
+  if (update.$set) update.$set = set
+  else this.setUpdate(set)
+})
 
 export type ProductDoc = InferSchemaType<typeof productSchema>
 
