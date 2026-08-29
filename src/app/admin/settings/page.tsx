@@ -8,13 +8,17 @@ import { Loader } from '@/components/ui/Loader'
 
 export default function AdminSettingsPage() {
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">Paramètres</h1>
-      <AccountSection />
-      <PasswordSection />
-      <ShopSection />
-      <PricingSection />
-      <TeamSection />
+      <div className="grid gap-6 xl:grid-cols-2">
+        <AccountSection />
+        <PasswordSection />
+        <ShopSection />
+        <PricingSection />
+        <div className="xl:col-span-2">
+          <TeamSection />
+        </div>
+      </div>
     </div>
   )
 }

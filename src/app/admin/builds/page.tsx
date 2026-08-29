@@ -14,6 +14,9 @@ import {
   type SlotKey,
 } from '@/lib/configurator'
 import { SlotPicker } from '@/components/configurator/SlotPicker'
+import { usePagination } from '@/hooks/usePagination'
+import { Pagination } from '@/components/ui/Pagination'
+import { Loader } from '@/components/ui/Loader'
 import type { Build } from '@/types'
 
 export default function AdminBuildsPage() {
@@ -36,6 +39,9 @@ export default function AdminBuildsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'builds'] }),
   })
 
+  const list = builds.data ?? []
+  const { page, setPage, pageCount, pageItems } = usePagination(list, 12)
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -53,10 +59,11 @@ export default function AdminBuildsPage() {
       {creating && <BuildEditor onDone={() => setCreating(false)} />}
 
       <div className="mt-8 space-y-3">
-        {builds.data?.length === 0 && (
+        {builds.isLoading && <Loader />}
+        {!builds.isLoading && list.length === 0 && (
           <p className="text-sm text-muted">Aucune configuration pour le moment.</p>
         )}
-        {builds.data?.map((b) => (
+        {pageItems.map((b) => (
           <div key={b.id} className="card flex flex-wrap items-center justify-between gap-4 p-4">
             <div>
               <p className="font-semibold">{b.name}</p>
@@ -86,6 +93,7 @@ export default function AdminBuildsPage() {
             </div>
           </div>
         ))}
+        <Pagination page={page} pageCount={pageCount} onChange={setPage} className="pt-2" />
       </div>
     </div>
   )

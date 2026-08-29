@@ -7,6 +7,8 @@ import { formatPrice } from '@/lib/utils'
 import { ORDER_STATUS_LABELS } from '@/lib/constants'
 import { StatCard } from '@/components/admin/StatCard'
 import { RevenueChart } from '@/components/admin/RevenueChart'
+import { usePagination } from '@/hooks/usePagination'
+import { Pagination } from '@/components/ui/Pagination'
 
 interface Stats {
   revenue: {
@@ -45,6 +47,8 @@ export default function AdminDashboardPage() {
     queryKey: ['admin', 'stats'],
     queryFn: async () => (await apiClient.get<Stats>('/admin/dashboard/stats')).data,
   })
+
+  const brands = usePagination(data?.salesByBrand ?? [], 12)
 
   if (isLoading || !data) return <p className="text-muted">Chargement…</p>
 
@@ -164,7 +168,7 @@ export default function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10">
-              {d.salesByBrand.map((b) => (
+              {brands.pageItems.map((b) => (
                 <tr key={b.brand}>
                   <td className="py-2 font-medium">{b.brand}</td>
                   <td className="py-2 text-right">{b.units}</td>
@@ -186,6 +190,12 @@ export default function AdminDashboardPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={brands.page}
+          pageCount={brands.pageCount}
+          onChange={brands.setPage}
+          className="mt-4"
+        />
       </div>
     </div>
   )

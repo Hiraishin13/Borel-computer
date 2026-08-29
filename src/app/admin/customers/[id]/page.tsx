@@ -5,6 +5,9 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { formatPrice, formatDate } from '@/lib/utils'
 import { ORDER_STATUS_LABELS } from '@/lib/constants'
+import { usePagination } from '@/hooks/usePagination'
+import { Pagination } from '@/components/ui/Pagination'
+import { Loader } from '@/components/ui/Loader'
 import type { Order } from '@/types'
 
 interface CustomerDetail {
@@ -29,9 +32,12 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
       (await apiClient.get<CustomerDetail>(`/admin/customers/${params.id}`)).data,
   })
 
-  if (isLoading || !data) return <p className="text-muted">Chargement…</p>
+  const ordersPage = usePagination<Order>(data?.orders ?? [], 10)
+  const boughtPage = usePagination(data?.bought ?? [], 10)
 
-  const { customer: c, summary, bought, orders } = data
+  if (isLoading || !data) return <Loader />
+
+  const { customer: c, summary } = data
 
   return (
     <div className="space-y-8">
@@ -68,12 +74,12 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
           <h2 className="text-sm font-semibold">Ce qu&apos;il achète</h2>
           <table className="mt-4 w-full text-sm">
             <tbody className="divide-y divide-white/10">
-              {bought.length === 0 && (
+              {data.bought.length === 0 && (
                 <tr>
                   <td className="py-3 text-center text-muted">Aucun achat</td>
                 </tr>
               )}
-              {bought.map((b) => (
+              {boughtPage.pageItems.map((b) => (
                 <tr key={b.name}>
                   <td className="py-2">{b.name}</td>
                   <td className="py-2 text-right text-muted">×{b.units}</td>
@@ -82,6 +88,12 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
               ))}
             </tbody>
           </table>
+          <Pagination
+            page={boughtPage.page}
+            pageCount={boughtPage.pageCount}
+            onChange={boughtPage.setPage}
+            className="mt-4"
+          />
         </div>
 
         <div className="card p-5">
@@ -101,9 +113,9 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
       </div>
 
       <div className="card p-5">
-        <h2 className="text-sm font-semibold">Commandes</h2>
+        <h2 className="text-sm font-semibold">Commandes ({data.orders.length})</h2>
         <div className="mt-4 space-y-2">
-          {orders.map((o) => (
+          {ordersPage.pageItems.map((o) => (
             <Link
               key={o.id}
               href={`/admin/orders/${o.id}`}
@@ -122,6 +134,12 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
             </Link>
           ))}
         </div>
+        <Pagination
+          page={ordersPage.page}
+          pageCount={ordersPage.pageCount}
+          onChange={ordersPage.setPage}
+          className="mt-4"
+        />
       </div>
     </div>
   )

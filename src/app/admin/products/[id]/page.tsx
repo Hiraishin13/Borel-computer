@@ -53,7 +53,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   if (isLoading || !data) return <Loader />
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-5xl">
       <Link href="/admin/products" className="text-sm text-muted hover:text-light">
         ← Produits
       </Link>
