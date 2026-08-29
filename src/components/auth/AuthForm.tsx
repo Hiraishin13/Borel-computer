@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { apiClient } from '@/lib/api-client'
 import { useAuthStore } from '@/store/auth'
 import type { AuthResponse } from '@/types'
@@ -17,7 +17,15 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const isRegister = mode === 'register'
   const expired = params.get('session') === 'expired'
   const redirect = params.get('redirect')
-  const destination = redirect && redirect.startsWith('/') ? redirect : '/account/profile'
+  const explicitRedirect = redirect && redirect.startsWith('/') ? redirect : null
+
+  // Déjà connecté : on renvoie vers l'espace approprié
+  useEffect(() => {
+    const s = useAuthStore.getState()
+    if (!s.token) return
+    const home = s.user?.role === 'admin' ? '/admin/dashboard' : '/account/profile'
+    router.replace(explicitRedirect ?? home)
+  }, [router, explicitRedirect])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -30,7 +38,8 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         payload,
       )
       setSession(data)
-      router.push(destination)
+      const home = data.role === 'admin' ? '/admin/dashboard' : '/account/profile'
+      router.push(explicitRedirect ?? home)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue')
     } finally {
