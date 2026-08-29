@@ -10,7 +10,7 @@ import { formatPrice, cn } from '@/lib/utils'
 import { SearchIcon } from '@/components/ui/icons'
 import type { Product } from '@/types'
 
-export function SearchBar() {
+export function SearchBar({ triggerClassName }: { triggerClassName?: string }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [value, setValue] = useState('')
@@ -65,10 +65,10 @@ export function SearchBar() {
   const results = data?.data ?? []
 
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className="relative flex items-center">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="text-muted transition-colors hover:text-light"
+        className={triggerClassName ?? 'text-muted transition-colors hover:text-light'}
         aria-label="Rechercher"
         title="Rechercher"
         aria-expanded={open}

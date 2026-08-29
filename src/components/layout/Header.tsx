@@ -11,6 +11,8 @@ import { MobileNav } from './MobileNav'
 import { SearchBar } from './SearchBar'
 import { CartIcon, HeartIcon, UserIcon } from '@/components/ui/icons'
 
+const actionClass = 'flex h-9 w-9 items-center justify-center rounded-md text-muted transition-colors hover:bg-white/5 hover:text-light'
+
 export function Header() {
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
@@ -59,46 +61,40 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
           {mounted && isAdmin && (
             <Link
               href="/admin/dashboard"
-              className="hidden rounded border border-accent/40 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/10 sm:block"
+              className="mr-1 hidden rounded border border-accent/40 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/10 sm:block"
             >
               Admin
             </Link>
           )}
 
-          <SearchBar />
+          <SearchBar triggerClassName={actionClass} />
 
           <Link
             href="/account/wishlist"
-            className="hidden text-muted transition-colors hover:text-light sm:block"
+            className={cn(actionClass, 'hidden sm:flex')}
             aria-label="Favoris"
             title="Favoris"
           >
             <HeartIcon />
           </Link>
 
-          <Link
-            href="/cart"
-            className="relative text-muted transition-colors hover:text-light"
-            aria-label="Panier"
-            title="Panier"
-          >
+          <Link href="/cart" className={cn(actionClass, 'relative')} aria-label="Panier" title="Panier">
             <CartIcon />
             {mounted && count > 0 && (
-              <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-light">
+              <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-light">
                 {count}
               </span>
             )}
           </Link>
 
-          {/* Connexion / compte */}
           {mounted && isAuthed ? (
             <Link
               href="/account/profile"
-              className="flex items-center gap-1.5 text-muted transition-colors hover:text-light"
+              className={cn(actionClass, 'w-auto gap-1.5 px-2')}
               aria-label="Mon compte"
               title="Mon compte"
             >
@@ -106,17 +102,12 @@ export function Header() {
               <span className="hidden text-sm font-medium lg:inline">{user?.firstName}</span>
             </Link>
           ) : (
-            <Link
-              href="/login"
-              className="text-muted transition-colors hover:text-light"
-              aria-label="Se connecter"
-              title="Se connecter"
-            >
+            <Link href="/login" className={actionClass} aria-label="Se connecter" title="Se connecter">
               <UserIcon />
             </Link>
           )}
 
-          <MobileNav />
+          <MobileNav triggerClassName={actionClass} />
         </div>
       </div>
     </header>

@@ -7,7 +7,7 @@ import { NAV_LINKS } from '@/lib/constants'
 import { useAuthStore } from '@/store/auth'
 import { HeartIcon, LogInIcon, UserIcon } from '@/components/ui/icons'
 
-export function MobileNav() {
+export function MobileNav({ triggerClassName }: { triggerClassName?: string }) {
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const user = useAuthStore((s) => s.user)
@@ -15,16 +15,18 @@ export function MobileNav() {
   useEffect(() => setMounted(true), [])
 
   return (
-    <div className="md:hidden">
+    <div className="flex items-center md:hidden">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="p-2 text-light"
+        className={triggerClassName ?? 'p-2 text-light'}
         aria-label="Menu"
         aria-expanded={open}
       >
-        <span className="block h-0.5 w-6 bg-current" />
-        <span className="mt-1.5 block h-0.5 w-6 bg-current" />
-        <span className="mt-1.5 block h-0.5 w-6 bg-current" />
+        <span className="flex flex-col gap-[5px]">
+          <span className="block h-0.5 w-5 bg-current" />
+          <span className="block h-0.5 w-5 bg-current" />
+          <span className="block h-0.5 w-5 bg-current" />
+        </span>
       </button>
 
       <AnimatePresence>
