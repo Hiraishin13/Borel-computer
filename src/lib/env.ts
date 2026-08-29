@@ -2,6 +2,8 @@
  * Centralised, validated access to environment variables.
  * Server-only values throw at first use if missing.
  */
+import { APP_URL } from './constants'
+
 function required(name: string): string {
   const value = process.env[name]
   if (!value) {
@@ -30,6 +32,6 @@ export const env = {
     return required('RESEND_API_KEY')
   },
   emailFrom: process.env.EMAIL_FROM ?? 'Borel Computer <noreply@borelcomputer.com>',
-  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
+  appUrl: APP_URL,
   isProd: process.env.NODE_ENV === 'production',
 }

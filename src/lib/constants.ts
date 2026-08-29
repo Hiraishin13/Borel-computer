@@ -1,9 +1,22 @@
+/** URL publique de l'app, résiliente (env vide, build Vercel, dev). */
+function resolveAppUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_APP_URL?.trim()
+  if (explicit) return explicit.replace(/\/+$/, '')
+  const prod = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim()
+  if (prod) return `https://${prod}`
+  const deploy = process.env.VERCEL_URL?.trim()
+  if (deploy) return `https://${deploy}`
+  return 'http://localhost:3000'
+}
+
+export const APP_URL = resolveAppUrl()
+
 export const SITE = {
   name: 'Borel Computer',
   tagline: "L'excellence technologique pour gamers et professionnels",
   description:
     'Boutique informatique haut de gamme : PC gaming, composants, périphériques et configurations sur mesure.',
-  url: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
+  url: APP_URL,
 } as const
 
 // Devise par défaut de la boutique

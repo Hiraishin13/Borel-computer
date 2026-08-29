@@ -12,8 +12,16 @@ const playfair = Playfair_Display({
   display: 'swap',
 })
 
+function safeUrl(value: string): URL {
+  try {
+    return new URL(value)
+  } catch {
+    return new URL('http://localhost:3000')
+  }
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE.url),
+  metadataBase: safeUrl(SITE.url),
   title: { default: `${SITE.name} — ${SITE.tagline}`, template: `%s | ${SITE.name}` },
   description: SITE.description,
   openGraph: {
