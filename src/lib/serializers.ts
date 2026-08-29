@@ -13,6 +13,7 @@ export function serializeProduct(doc: any): Product {
     id: String(doc._id),
     sku: doc.sku,
     name: doc.name,
+    brand: doc.brand ?? undefined,
     slug: doc.slug,
     description: doc.description,
     category: doc.category,

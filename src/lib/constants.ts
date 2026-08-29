@@ -15,6 +15,10 @@ export const FREE_SHIPPING_THRESHOLD = 100
 export const STANDARD_SHIPPING = 9.9
 export const EXPRESS_SHIPPING_SURCHARGE = 15
 
+// Configurateur PC — frais d'assemblage, test et garantie
+export const ASSEMBLY_SKU = 'SVC-ASSEMBLAGE'
+export const ASSEMBLY_FEE = 99
+
 export const CATEGORIES = [
   {
     slug: 'ordinateurs',

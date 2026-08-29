@@ -63,6 +63,12 @@ src/
   présent mais inutilisé.
 - **Erreurs API** : format unique `{ error: { code, message, details? } }` via `lib/api-response`.
 - **SEO** : `sitemap.ts`, `robots.ts`, metadata dynamiques, Open Graph.
+- **Configurateur** (`/configurator`) : piloté par le catalogue réel
+  (`/api/configurator` regroupe les produits `category: composants` par slot). Filtre par marque,
+  choix du modèle, sélection de finition (variante « Couleur »). `src/lib/configurator.ts` vérifie
+  en temps réel socket CPU↔carte mère, type mémoire, dimensionnement de l'alimentation et estime
+  la consommation. Ajout de toute la config au panier (+ service `SVC-ASSEMBLAGE`) et export devis
+  PDF (`src/lib/config-sheet.ts`).
 
 ## Déploiement Vercel
 

@@ -1,105 +1,168 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { formatPrice } from '@/lib/utils'
-
-/** Minimal PC configurator skeleton — component data would come from /api/products?category=composants. */
-const PARTS = {
-  cpu: [
-    { id: 'r5', name: 'AMD Ryzen 5 7600X', price: 249 },
-    { id: 'r7', name: 'AMD Ryzen 7 7800X3D', price: 419 },
-    { id: 'i7', name: 'Intel Core i7-14700K', price: 429 },
-  ],
-  gpu: [
-    { id: '4060', name: 'GeForce RTX 4060 Ti', price: 449 },
-    { id: '4070s', name: 'GeForce RTX 4070 Super', price: 659 },
-    { id: '4080s', name: 'GeForce RTX 4080 Super', price: 1109 },
-  ],
-  ram: [
-    { id: '16', name: '16 Go DDR5 6000', price: 69 },
-    { id: '32', name: '32 Go DDR5 6000', price: 129 },
-    { id: '64', name: '64 Go DDR5 6000', price: 259 },
-  ],
-  storage: [
-    { id: '1tb', name: 'SSD NVMe 1 To Gen4', price: 89 },
-    { id: '2tb', name: 'SSD NVMe 2 To Gen4', price: 159 },
-  ],
-} as const
-
-type PartKey = keyof typeof PARTS
-const LABELS: Record<PartKey, string> = {
-  cpu: 'Processeur',
-  gpu: 'Carte graphique',
-  ram: 'Mémoire',
-  storage: 'Stockage',
-}
+import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api-client'
+import { useCartStore } from '@/store/cart'
+import { ASSEMBLY_FEE } from '@/lib/constants'
+import {
+  CONFIG_SLOTS,
+  checkCompatibility,
+  incompatibleIds,
+  performanceTier,
+  type ConfigCatalog,
+  type Selection,
+  type SlotKey,
+} from '@/lib/configurator'
+import { downloadConfigSheet } from '@/lib/config-sheet'
+import type { Product } from '@/types'
+import { SlotPicker } from '@/components/configurator/SlotPicker'
+import { ConfigSummary, type SummaryLine } from '@/components/configurator/ConfigSummary'
 
 export default function ConfiguratorPage() {
-  const [selection, setSelection] = useState<Record<PartKey, string>>({
-    cpu: PARTS.cpu[0].id,
-    gpu: PARTS.gpu[0].id,
-    ram: PARTS.ram[0].id,
-    storage: PARTS.storage[0].id,
+  const router = useRouter()
+  const addItem = useCartStore((s) => s.addItem)
+  const [selection, setSelection] = useState<Selection>({})
+  const [busy, setBusy] = useState(false)
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['configurator'],
+    queryFn: async () => {
+      const { data } = await apiClient.get<{ catalog: ConfigCatalog }>('/configurator')
+      return data.catalog
+    },
   })
 
-  const total = useMemo(() => {
-    return (Object.keys(PARTS) as PartKey[]).reduce((sum, key) => {
-      const part = PARTS[key].find((p) => p.id === selection[key])
-      return sum + (part?.price ?? 0)
-    }, 150) // montage + boîtier + alim de base
-  }, [selection])
+  const assembly = useQuery({
+    queryKey: ['product', 'assemblage-cablage-test'],
+    queryFn: async () => {
+      const { data } = await apiClient.get<Product>('/products/assemblage-cablage-test')
+      return data
+    },
+  })
+
+  const catalog = data
+  const bad = useMemo(
+    () => (catalog ? incompatibleIds(catalog, selection) : ({} as Record<SlotKey, Set<string>>)),
+    [catalog, selection],
+  )
+  const report = useMemo(
+    () =>
+      catalog
+        ? checkCompatibility(catalog, selection)
+        : { errors: [], warnings: [], estimatedWatts: 0, recommendedPsu: 0 },
+    [catalog, selection],
+  )
+
+  const productFor = (slot: SlotKey): Product | undefined => {
+    const id = selection[slot]?.productId
+    return id ? catalog?.[slot]?.find((p) => p.id === id) : undefined
+  }
+
+  const lines: SummaryLine[] = CONFIG_SLOTS.flatMap(({ key, label }) => {
+    const p = productFor(key)
+    if (!p) return []
+    return [{ slot: label, name: p.name, color: selection[key]?.color, price: p.discountPrice ?? p.price }]
+  })
+
+  const componentsTotal = lines.reduce((s, l) => s + l.price, 0)
+  const total = componentsTotal + ASSEMBLY_FEE
+
+  const missing = CONFIG_SLOTS.filter((s) => s.required && !selection[s.key]).map((s) => s.label)
+
+  function handleAddToCart() {
+    if (!catalog) return
+    setBusy(true)
+    try {
+      CONFIG_SLOTS.forEach(({ key }) => {
+        const p = productFor(key)
+        if (!p) return
+        const color = selection[key]?.color
+        addItem({
+          id: `${p.id}${color ? `-${color}` : ''}`,
+          productId: p.id,
+          name: color ? `${p.name} — ${color}` : p.name,
+          slug: p.slug,
+          price: p.discountPrice ?? p.price,
+          image: p.thumbnail,
+          stock: p.stock,
+        })
+      })
+      if (assembly.data) {
+        addItem({
+          id: assembly.data.id,
+          productId: assembly.data.id,
+          name: assembly.data.name,
+          slug: assembly.data.slug,
+          price: assembly.data.price,
+          image: assembly.data.thumbnail,
+          stock: assembly.data.stock,
+        })
+      }
+      router.push('/cart')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function handleDownload() {
+    void downloadConfigSheet({
+      lines: [
+        ...lines.map((l) => ({ slot: l.slot, name: l.name, detail: l.color, price: l.price })),
+        { slot: 'Assemblage', name: 'Assemblage, câblage & test 48h', price: ASSEMBLY_FEE },
+      ],
+      total,
+      estimatedWatts: report.estimatedWatts,
+      performance: performanceTier(productFor('GPU')),
+      warnings: [...report.errors, ...report.warnings],
+    })
+  }
 
   return (
     <div className="container-page py-12">
       <h1 className="text-3xl font-bold">Configurateur PC</h1>
-      <p className="mt-2 text-muted">Composez votre configuration sur mesure, assemblée par nos techniciens.</p>
+      <p className="mt-2 max-w-2xl text-muted">
+        Composez votre configuration sur mesure : choisissez la marque, le modèle et la finition de
+        chaque composant. La compatibilité et la consommation sont vérifiées en temps réel.
+      </p>
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-8">
-          {(Object.keys(PARTS) as PartKey[]).map((key) => (
-            <div key={key}>
-              <p className="mb-3 text-sm font-semibold">{LABELS[key]}</p>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {PARTS[key].map((part) => (
-                  <button
-                    key={part.id}
-                    onClick={() => setSelection((s) => ({ ...s, [key]: part.id }))}
-                    className={`card p-4 text-left text-sm transition-colors ${
-                      selection[key] === part.id ? 'border-accent' : 'hover:border-white/30'
-                    }`}
-                  >
-                    <span className="block font-medium">{part.name}</span>
-                    <span className="mt-1 block text-accent">{formatPrice(part.price)}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+      <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
+        <div className="space-y-5">
+          {isLoading || !catalog ? (
+            <p className="text-muted">Chargement du catalogue…</p>
+          ) : (
+            CONFIG_SLOTS.map(({ key, label, required }) => (
+              <SlotPicker
+                key={key}
+                label={label}
+                required={required}
+                products={catalog[key] ?? []}
+                selection={selection[key]}
+                incompatible={bad[key] ?? new Set()}
+                onSelect={(value) =>
+                  setSelection((prev) => {
+                    const next = { ...prev }
+                    if (value) next[key] = value
+                    else delete next[key]
+                    return next
+                  })
+                }
+              />
+            ))
+          )}
         </div>
 
-        <div className="card h-fit p-6">
-          <h2 className="text-lg font-semibold">Votre configuration</h2>
-          <dl className="mt-4 space-y-2 text-sm text-muted">
-            {(Object.keys(PARTS) as PartKey[]).map((key) => {
-              const part = PARTS[key].find((p) => p.id === selection[key])
-              return (
-                <div key={key} className="flex justify-between">
-                  <dt>{LABELS[key]}</dt>
-                  <dd className="text-right text-light">{part?.name}</dd>
-                </div>
-              )
-            })}
-            <div className="flex justify-between">
-              <dt>Assemblage + boîtier</dt>
-              <dd className="text-light">{formatPrice(150)}</dd>
-            </div>
-          </dl>
-          <div className="mt-4 flex justify-between border-t border-white/10 pt-4 text-base font-bold">
-            <span>Total</span>
-            <span>{formatPrice(total)}</span>
-          </div>
-          <button className="btn-primary mt-6 w-full">Ajouter au panier</button>
-        </div>
+        <ConfigSummary
+          lines={lines}
+          total={total}
+          report={report}
+          performance={performanceTier(productFor('GPU'))}
+          missing={missing}
+          onAddToCart={handleAddToCart}
+          onDownload={handleDownload}
+          busy={busy}
+        />
       </div>
     </div>
   )

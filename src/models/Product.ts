@@ -12,6 +12,7 @@ const productSchema = new Schema(
   {
     sku: { type: String, required: true, unique: true },
     name: { type: String, required: true },
+    brand: { type: String, index: true },
     slug: { type: String, required: true, unique: true, index: true },
     description: { type: String, required: true },
     category: { type: String, required: true, index: true },

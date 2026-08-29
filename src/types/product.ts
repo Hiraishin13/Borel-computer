@@ -15,6 +15,7 @@ export interface Product {
   id: string
   sku: string
   name: string
+  brand?: string
   slug: string
   description: string
   category: ProductCategory
