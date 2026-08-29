@@ -1,12 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { NAV_LINKS } from '@/lib/constants'
+import { useAuthStore } from '@/store/auth'
+import { HeartIcon, LogInIcon, UserIcon } from '@/components/ui/icons'
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const user = useAuthStore((s) => s.user)
+
+  useEffect(() => setMounted(true), [])
 
   return (
     <div className="md:hidden">
@@ -41,6 +47,35 @@ export function MobileNav() {
                   {link.label}
                 </Link>
               ))}
+
+              <div className="mt-2 border-t border-white/10 pt-2">
+                {mounted && user ? (
+                  <>
+                    <Link
+                      href="/account/profile"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-2 py-3 text-sm font-medium text-light"
+                    >
+                      <UserIcon width={18} height={18} /> Mon compte
+                    </Link>
+                    <Link
+                      href="/account/wishlist"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-2 py-3 text-sm font-medium text-muted hover:text-light"
+                    >
+                      <HeartIcon width={18} height={18} /> Favoris
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 py-3 text-sm font-medium text-accent"
+                  >
+                    <LogInIcon width={18} height={18} /> Se connecter
+                  </Link>
+                )}
+              </div>
             </nav>
           </motion.div>
         )}
