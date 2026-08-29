@@ -55,8 +55,12 @@ src/
   `requireAuth` / `requireAdmin` dans chaque route protégée.
 - **Panier** : côté client via Zustand `persist`. Le checkout **recalcule les prix et le stock
   côté serveur** — les montants client ne sont jamais dignes de confiance.
-- **Paiement** : `PaymentIntent` Stripe créé au checkout ; l'état de la commande est confirmé
-  par le webhook `/api/webhooks/stripe`.
+- **Paiement** : **espèces à la livraison**. À la validation, la commande est enregistrée
+  (`status: pending`, `paymentMethod: cash`), une **facture PDF unique** est générée côté client
+  (jsPDF) sur la page de confirmation, et un lien `wa.me` pré-rempli ouvre WhatsApp avec le
+  récapitulatif complet (articles, totaux, coordonnées, adresse). Numéro cible :
+  `NEXT_PUBLIC_WHATSAPP_NUMBER`. Le code Stripe (`lib/stripe`, `api/webhooks/stripe`) reste
+  présent mais inutilisé.
 - **Erreurs API** : format unique `{ error: { code, message, details? } }` via `lib/api-response`.
 - **SEO** : `sitemap.ts`, `robots.ts`, metadata dynamiques, Open Graph.
 
@@ -70,7 +74,7 @@ src/
 
 ## Reste à faire
 
-- Intégration Stripe Elements sur la page de paiement
 - CRUD produits complet dans l'admin (formulaire + upload Vercel Blob)
 - Pages `account/orders/[id]`, `reset-password`, avis produits (UI)
 - Tests (unitaires + e2e) et rate limiting
+- Renseigner `NEXT_PUBLIC_WHATSAPP_NUMBER` avec le vrai numéro de la boutique

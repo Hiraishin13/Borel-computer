@@ -5,24 +5,25 @@ import { Product } from '@/models/Product'
 import { Order } from '@/models/Order'
 import { Promo } from '@/models/Promo'
 import { requireAuth } from '@/lib/auth'
-import { getStripe } from '@/lib/stripe'
 import { generateOrderNumber } from '@/lib/utils'
 import { sendEmail, emailTemplates } from '@/lib/email'
-import {
-  TAX_RATE,
-  FREE_SHIPPING_THRESHOLD,
-  STANDARD_SHIPPING,
-} from '@/lib/constants'
+import { TAX_RATE, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING } from '@/lib/constants'
 import { handle, ok, fail } from '@/lib/api-response'
 
 const schema = z.object({
   items: z
-    .array(z.object({ productId: z.string(), quantity: z.number().int().min(1), variant: z.string().optional() }))
+    .array(
+      z.object({
+        productId: z.string(),
+        quantity: z.number().int().min(1),
+        variant: z.string().optional(),
+      }),
+    )
     .min(1),
   shippingAddress: z.record(z.string()),
   billingAddress: z.record(z.string()).optional(),
   shippingMethod: z.enum(['standard', 'express']),
-  paymentMethod: z.literal('stripe'),
+  paymentMethod: z.literal('cash').default('cash'),
   couponCode: z.string().optional(),
 })
 
@@ -80,25 +81,12 @@ export const POST = handle(async (request: NextRequest) => {
   const shipping = baseShipping + (body.shippingMethod === 'express' ? 15 : 0)
   const total = +(taxable + tax + shipping).toFixed(2)
 
-  let clientSecret: string | null = null
-  let paymentIntentId: string | undefined
-  try {
-    const intent = await getStripe().paymentIntents.create({
-      amount: Math.round(total * 100),
-      currency: 'eur',
-      metadata: { userId: auth.userId },
-      automatic_payment_methods: { enabled: true },
-    })
-    clientSecret = intent.client_secret
-    paymentIntentId = intent.id
-  } catch {
-    // Stripe not configured in dev — continue without a real intent.
-  }
-
+  // Paiement en espèces : la commande est enregistrée "en attente", le règlement
+  // se fait à la remise des articles. Aucun prestataire de paiement en ligne.
   const order = await Order.create({
     orderNumber: generateOrderNumber(),
     userId: auth.userId,
-    status: 'processing',
+    status: 'pending',
     items,
     subtotal,
     shipping,
@@ -107,16 +95,13 @@ export const POST = handle(async (request: NextRequest) => {
     total,
     shippingAddress: body.shippingAddress,
     billingAddress: body.billingAddress ?? body.shippingAddress,
-    paymentMethod: 'stripe',
+    paymentMethod: 'cash',
     paymentStatus: 'pending',
-    stripePaymentIntentId: paymentIntentId,
   })
 
   // Decrement stock.
   await Promise.all(
-    items.map((i) =>
-      Product.updateOne({ _id: i.productId }, { $inc: { stock: -i.quantity } }),
-    ),
+    items.map((i) => Product.updateOne({ _id: i.productId }, { $inc: { stock: -i.quantity } })),
   )
 
   const tpl = emailTemplates.orderConfirmation(order.orderNumber, total)
@@ -127,8 +112,11 @@ export const POST = handle(async (request: NextRequest) => {
       orderId: String(order._id),
       orderNumber: order.orderNumber,
       status: order.status,
+      subtotal,
+      tax,
+      shipping,
+      discount,
       total,
-      clientSecret,
     },
     201,
   )

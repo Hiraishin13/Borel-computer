@@ -31,7 +31,7 @@ const orderSchema = new Schema(
     total: { type: Number, required: true },
     shippingAddress: { type: Schema.Types.Mixed, required: true },
     billingAddress: { type: Schema.Types.Mixed },
-    paymentMethod: { type: String, default: 'stripe' },
+    paymentMethod: { type: String, enum: ['cash', 'stripe'], default: 'cash' },
     paymentStatus: {
       type: String,
       enum: ['pending', 'completed', 'failed', 'refunded'],
