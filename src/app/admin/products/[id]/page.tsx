@@ -57,7 +57,27 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       <Link href="/admin/products" className="text-sm text-muted hover:text-light">
         ← Produits
       </Link>
-      <h1 className="mt-1 text-2xl font-bold">{data.name}</h1>
+      <div className="mt-1 flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl font-bold">{data.name}</h1>
+        <span
+          className={
+            data.published
+              ? 'rounded bg-success/15 px-2 py-0.5 text-xs text-success'
+              : 'rounded bg-white/10 px-2 py-0.5 text-xs text-muted'
+          }
+        >
+          {data.published ? 'Publié' : 'Hors ligne'}
+        </span>
+        {data.published && (
+          <Link
+            href={`/products/${data.slug}`}
+            target="_blank"
+            className="text-xs text-accent hover:underline"
+          >
+            Voir la fiche ↗
+          </Link>
+        )}
+      </div>
       <p className="text-sm text-muted">
         {data.sku} · marge actuelle{' '}
         {data.price > 0

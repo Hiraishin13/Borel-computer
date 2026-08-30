@@ -114,12 +114,13 @@ export default function AdminProductsPage() {
               <th className="py-2 text-right font-normal">Stock</th>
               <th className="py-2 text-right font-normal">Vendus</th>
               <th className="py-2 text-center font-normal">Publié</th>
+              <th className="py-2 text-right font-normal">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">
             {isLoading ? (
               <tr>
-                <td colSpan={8} className="py-10">
+                <td colSpan={9} className="py-10">
                   <Loader />
                 </td>
               </tr>
@@ -210,6 +211,14 @@ function ProductRow({
         >
           <span className="h-4 w-4 rounded-full bg-white" />
         </button>
+      </td>
+      <td className="py-2 text-right">
+        <Link
+          href={`/admin/products/${p.id}`}
+          className="rounded-md border border-white/15 px-2.5 py-1 text-xs font-medium text-muted hover:border-accent hover:text-accent"
+        >
+          Modifier
+        </Link>
       </td>
     </tr>
   )
